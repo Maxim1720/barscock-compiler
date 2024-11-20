@@ -1,0 +1,48 @@
+* {
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+}
+
+body {
+  height: 100vh;
+}
+
+.layout {
+  padding: 12vh 5vw;
+  border: 1px solid red;
+  height: 100%;
+  display: flex;
+  gap: 16px;
+}
+
+.section {
+  width: 100%;
+  border: black;
+}
+.section label {
+  display: flex;
+  font-size: 1.5em;
+}
+.section label input {
+  display: block;
+}
+
+.code-input {
+  width: 100%;
+  height: 80%;
+  resize: none;
+  padding: 0;
+  border: 2px solid black;
+  border-radius: 4px;
+}
+
+.btn {
+  background: green;
+  border: none;
+  padding: 10px 8px;
+  border-radius: 6px;
+  font-size: 1.2em;
+}
+
+/*# sourceMappingURL=style.css.map */
