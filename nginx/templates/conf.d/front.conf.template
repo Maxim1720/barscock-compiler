@@ -1,0 +1,20 @@
+server{
+    listen ${FRONT_PORT};
+    server_name ${HOST};
+
+    #location / {
+    #    root /usr/share/nginx/html;
+    #    index index.html;
+    #}
+
+    location / {
+        include includes/proxy_params.conf ;
+        proxy_pass http://front:${FRONT_PORT}/ ;
+    }
+
+    location /${BACKEND_ENDPOINT}/ {
+        include includes/proxy_params.conf;
+        proxy_pass http://back:${BACKEND_PORT}/;  # Проксируем на бэкенд
+    }
+
+}

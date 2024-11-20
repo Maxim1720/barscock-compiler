@@ -1,0 +1,6 @@
+#server {
+#    listen ${FRONT_PORT};  # Подставим FRONT_PORT через Docker Compose
+#    server_name ${HOST};
+#
+#
+#}

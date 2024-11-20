@@ -1,0 +1,36 @@
+services:
+  front:
+    build:
+      context: .
+      dockerfile: ./frontend/Dockerfile
+    env_file:
+      - .env
+    environment:
+      - PORT=${FRONT_PORT}
+    volumes:
+      - "./frontend:/app"
+    depends_on:
+      - back
+  back:
+    build:
+      context: ./backend/
+    image: back
+    container_name: back
+    env_file:
+      - .env
+    volumes:
+      - "./backend/src:/backend/src"
+      - "./backend/out:/backend/out"
+  nginx:
+    build: 
+      context: .
+      dockerfile: ./nginx/Dockerfile
+    env_file:
+      - .env
+    environment:
+      - NGINX_ENVSUBST_OUTPUT_DIR=/etc/nginx
+    ports:
+      - "${FRONT_PORT}:${FRONT_PORT}"
+      - "${BACKEND_PORT}:${BACKEND_PORT}"
+    depends_on:
+      - front
