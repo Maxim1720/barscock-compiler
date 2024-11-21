@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Response
 from starlette.requests import Request
 
-from .analyzer.lexical.lexical_analyzer import analyze
+from .analyzer.lexical.lexical_analyzer import Analyzer
 from .conf import get_global_config
 from .schema import CodeRequestSchema, AnalyzeResponseSchema
 
@@ -29,13 +29,17 @@ def read_out(type: str):
 
 
 @app.post("/analyze", response_model=AnalyzeResponseSchema, status_code=200)
-def root(code: CodeRequestSchema) -> AnalyzeResponseSchema:
+async def root(code: CodeRequestSchema) -> AnalyzeResponseSchema:
     # LexicalAnalyzer(code.data).analyze()
-    state = analyze(code.data)
+    state = Analyzer(code.data).analyze()
     tw = read_out("tw")
     tl = read_out("tl")
     tn = read_out("tn")
     ti = read_out("ti")
-    return AnalyzeResponseSchema(tw=tw, tl=tl, tn=tn, ti=ti, state=state.value)
+    print(state.value)
+    return AnalyzeResponseSchema(tw=tw, tl=tl, tn=tn, ti=ti, state=state.name)
+
+
+
 
 
