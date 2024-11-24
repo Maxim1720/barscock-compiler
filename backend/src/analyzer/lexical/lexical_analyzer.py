@@ -56,7 +56,27 @@ class GC:
     def get_ch(self) -> str:
         return self.ch
 
+class GC2:
+    def __init__(self, data: str):
+        self.data = data
+        self.index = 0
+        self.ch: str = data[0]
 
+    # program
+    # p - 0
+    # r - 1
+    def read(self):
+        logger.info(f"index: {self.index} of {len(self.data)}")
+        self.ch = self.data[self.index]
+        self.index += 1
+
+    # r - 1
+    # o - 2
+    def has_next(self):
+        return self.index < len(self.data)
+
+    def current_is_last(self):
+        return self.index-1 == len(self.data)-1
 
 # gc: GC|None = None
 
@@ -103,25 +123,35 @@ class GC:
 class Reader:
     def __init__(self, code: str):
         self.code = code
-        self.gc = GC(code)
+        self.gc = GC2(code)
         self.state = State.START
         self.buffer = ""
         self.number = ""
 
     def let(self):
-        return self.gc.get_ch().isalpha()
+        return self.gc.ch.isalpha()
 
     def digit(self):
-        return self.gc.get_ch().isdigit()
+        return self.gc.ch.isdigit()
 
     def nill(self):
         self.buffer = ""
 
+    def next(self):
+        return self.gc.read()
+    
+    def has_next(self):
+        return self.gc.has_next()
 
+    def get_ch(self):
+        return self.gc.ch
+
+    def current_last(self):
+        return self.gc.current_is_last()
 
     def add(self):
-        self.buffer += self.gc.get_ch()
-        logger.info(f"buffer: {self.buffer}, ch: {self.gc.get_ch()}")
+        self.buffer += self.gc.ch
+        logger.info(f"buffer: {self.buffer}, ch: {self.gc.ch}")
 
     def look(self, t: TableSrc):
         logger.info(f"table for look: {t.value}")
@@ -163,7 +193,7 @@ class Reader:
             lex.write(lexem)
             
     def check_pattern(self, pattern: str):
-        return re.fullmatch(pattern, self.gc.get_ch())
+        return re.fullmatch(pattern, self.gc.ch)
 
     # def white_spaces(self):
     #     return re.fullmatch("\\s", self.gc.get_ch())
@@ -182,27 +212,29 @@ class Analyzer:
     def analyze(self) -> State:
         for token in self._splitted_code:
             self._reader = Reader(token)
+            self._reader.next()
             logger.info(f"reader: {self._reader.__dict__}")
-                #program
-            while self._reader.gc.has_next() and self._reader.state != State.ERROR and self._reader.state != State.END:
-                self._reader.gc.next()
-                #p
-                logger.info(f"ch: {self._reader.gc.get_ch()}")
-
-                if (self._reader.let()):
+            while not self._reader.get_ch() == "":
+                logger.info(f"ch: {self._reader.get_ch()}")
+                if self._reader.let():
                     self._reader = IdentifierAnalyzer(self._reader).analyze()
                 elif self._reader.digit():
                     self._reader = NumberAnalyzer(self._reader).analyze()
-                # elif self._reader.gc.get_ch() == '{':
-                #     CommentAnalyzer(self._reader).analyze()
-                # elif self._reader.gc.get_ch() == '.':
-                #     if self._reader.buffer == "end":
-                #         self._reader.add()
-                #         self._reader.state = State.END
-                #     else:
-                #         self._reader.state = FloatNumberAnalyzer(self._reader).analyze()
+                elif self._reader.get_ch() == '{':
+                    CommentAnalyzer(self._reader).analyze()
+                elif self._reader.get_ch() == '.':
+                    if self._reader.buffer == "end":
+                        self._reader.nill()
+                        self._reader.add()
+                        z = self._reader.look(TableSrc.TL)
+                        if z!= -1:
+                            self._reader.out(TableLexem.TL, z)
+                        self._reader.state = State.END
+                        self._reader.gc.ch = ""
+                    else:
+                        self._reader = FloatNumberAnalyzer(self._reader).analyze()
                 else:
-                    logger.info(f"ch: {self._reader.gc.get_ch()} is delimiter")
+                    logger.info(f"ch: {self._reader.get_ch()} is delimiter")
                     self._reader = DelimiterAnalyzer(self._reader).analyze()
 
 
@@ -213,10 +245,10 @@ class Analyzer:
 class SubAnalyzer:
     def __init__(self, reader: Reader):
         self._reader = reader
-        self._reader.nill()
+        # self._reader.nill()
         self._reader.add()
         logger.info(f"buffer in {self.__class__} constructor: {self._reader.buffer}")
-        logger.info(f"ch in {self.__class__} constructor: {self._reader.gc.get_ch()}")
+        logger.info(f"ch in {self.__class__} constructor: {self._reader.get_ch()}")
 
     def analyze(self):
         pass
@@ -225,16 +257,17 @@ class IdentifierAnalyzer(SubAnalyzer):
     def __init__(self, reader: Reader):
         super().__init__(reader)
         self._reader.state = State.IDENTIFIER
-
-        # buffer: p
-        # ch: p
-
+        self._reader.nill()
 
     def analyze(self) -> Reader:
-        while self._reader.gc.is_next_let() or self._reader.gc.is_next_digit():
-            logger.info(f"Identifier ch: {self._reader.gc.get_ch()}")
-            self._reader.gc.next()
+
+        while (self._reader.let() or self._reader.digit()):
             self._reader.add()
+            if self._reader.current_last():
+                self._reader.gc.ch = ""
+                break
+            self._reader.next()
+
 
 
         logger.info(f"Identifier buffer: {self._reader.buffer}")
@@ -258,41 +291,46 @@ class NumberAnalyzer(SubAnalyzer):
     def __init__(self, reader: Reader):
         super().__init__(reader)
         self._reader.state = State.NUMBER
+
     def analyze(self) -> Reader:
+        self._reader.nill()
         if self._reader.check_pattern("[0-1]"):
-            self._reader.state = BinaryNumberAnalyzer(code[self._reader.gc.get_index():]).analyze()
+            self._reader = BinaryNumberAnalyzer(self._reader).analyze()
         elif self._reader.check_pattern("[2-7]"):
-            self._reader.state = OctNumberAnalyzer(self._reader).analyze()
+            self._reader = OctNumberAnalyzer(self._reader).analyze()
         elif self._reader.check_pattern("[8-9]"):
-            self._reader.state = DecimalAnalyzer(self._reader).analyze()
+            self._reader = DecimalAnalyzer(self._reader).analyze()
         elif self._reader.check_pattern("[0-9A-Fa-f]"):
-            self._reader.state = HexAnalyzer(self._reader).analyze()
+            self._reader = HexAnalyzer(self._reader).analyze()
         return self._reader
 
 
 class BinaryNumberAnalyzer(NumberAnalyzer):
     def analyze(self) -> Reader:
-        while self._reader.check_pattern("[0-1]") and self._reader.gc.has_next():
-            self._reader.add()
+        while self._reader.has_next():
+            self._reader.next()
+            if self._reader.check_pattern("[0-1]"):
+                self._reader.add()
+            else:
+                break
 
         if self._reader.check_pattern('[Bb]'):
-
-            if self._reader.gc.read():
-                self._reader.add()
-                if self._reader.check_pattern('[0-9A-Fa-f]'):
-                    self._reader.state = HexAnalyzer(self._reader).analyze()
-
-            self._reader.gc.read()
             self._reader.add()
-            if self._reader.check_pattern('[0-9A-Fa-f]'):
-                self._reader.state = HexAnalyzer(self._reader).analyze()
-            elif self._reader.check_pattern("[Hh]"):
-                pass
-            elif self._reader.white_spaces():
-                z = self._reader.put(TableOut.TN)
-                self._reader.out(TableLexem.TN, z)
-            else:
-                self._reader.state = State.ERROR
+            if self._reader.has_next():
+                self._reader.next()
+                if self._reader.check_pattern('[0-9A-Fa-f]'):
+                    self._reader =  HexAnalyzer(self._reader).analyze()
+                elif self._reader.check_pattern("[Hh]"):
+                    self._reader.add()
+                    z = self._reader.put(TableOut.TN)
+                    self._reader.out(TableLexem.TN, z)
+                    return self._reader
+                else:
+                    self._reader.state = State.ERROR
+                    return self._reader
+            z = self._reader.put(TableOut.TN)
+            self._reader.out(TableLexem.TN, z)
+
         elif self._reader.check_pattern("[2-7]"):
             self._reader.state = OctNumberAnalyzer(self._reader).analyze()
 
@@ -303,7 +341,7 @@ class BinaryNumberAnalyzer(NumberAnalyzer):
             self._reader.state = HexAnalyzer(self._reader).analyze()
 
         elif self._reader.check_pattern('\\.'):
-            self._reader.state = FloatNumberAnalyzer(self._reader).analyze()
+            self._reader = FloatNumberAnalyzer(self._reader).analyze()
         elif self._reader.check_pattern('[Ee]'):
             self._reader.state = ExponentAnalyzer(self._reader).analyze()
         elif self._reader.check_pattern('[Oo]'):
@@ -322,52 +360,80 @@ class CommentAnalyzer(SubAnalyzer):
         super().__init__(reader)
         self._reader.state = State.COMMENT
     def analyze(self) -> Reader:
-        while self._reader.gc.read() and self._reader.gc.get_ch() != '}':
+        while self._reader.gc.read() and self._reader.get_ch() != '}':
             pass
-        if self._reader.gc.get_ch() != '}':
+        if self._reader.get_ch() != '}':
             self._reader.state = State.ERROR
         self._reader.state = State.COMMENT
         return self._reader
 
 class FloatNumberAnalyzer(NumberAnalyzer):
+
+    def __init__(self, reader: Reader):
+        # self._reader.state = State.FLOAT
+        super().__init__(reader)
+
     def analyze(self) -> Reader:
-        while self._reader.check_pattern("[0-9]") and self._reader.gc.has_next():
+        if self._reader.has_next():
+            self._reader.next()
+        while self._reader.check_pattern("[0-9]"):
             self._reader.add()
-        if self._reader.check_pattern("[Ee]"):
-            self._reader.state =  FloatExponentAnalyzer(self._reader).analyze()
-        if self._reader.white_spaces():
-            z = self._reader.put(TableOut.TN)
-            self._reader.out(TableLexem.TN, z)
+            if self._reader.current_last():
+                self._reader.gc.ch = ""
+                break
+            else:
+                self._reader.next()
+
+        if self._reader.gc.has_next():
+            if self._reader.check_pattern("[Ee]"):
+                self._reader.state =  FloatExponentAnalyzer(self._reader).analyze()
+            else:
+                self._reader.state = State.ERROR
+                return self._reader
+
+        z = self._reader.put(TableOut.TN)
+        self._reader.out(TableLexem.TN, z)
         return self._reader
 
 class FloatExponentAnalyzer(NumberAnalyzer):
     def analyze(self) -> Reader:
         self._reader.gc.read()
         if self._reader.check_pattern("[+-0-9]"):
+            self._reader.add()
             self._analyze()
         else:
             self._reader.state = State.ERROR
         return self._reader
 
     def _analyze(self):
-        self._reader.add()
-        while self._reader.check_pattern("[0-9]") and self._reader.gc.has_next():
-            self._reader.add()
-        if self._reader.white_spaces():
-            z = self._reader.put(TableOut.TN)
-            self._reader.out(TableLexem.TN, z)
-        else:
-            self._reader.state = State.ERROR
+        while self._reader.gc.has_next():
+            self._reader.next()
+            if self._reader.check_pattern("[0-9]"):
+                self._reader.add()
+
+
+        z = self._reader.put(TableOut.TN)
+        self._reader.out(TableLexem.TN, z)
+
+        # else:
+        #     self._reader.state = State.ERROR
 
 class OctNumberAnalyzer(NumberAnalyzer):
     def analyze(self) -> Reader:
-        while self._reader.gc.is_next_has_pattern("[0-7]"):
-            self._reader.gc.next()
+        # while self._reader.check_pattern("[0-7]") and self._reader.has_next():
+        #     self._reader.next()
+        #     self._reader.add()
+        self._reader.nill()
+
+        while self._reader.check_pattern("[0-7]"):
             self._reader.add()
-        #547545
+            if self._reader.current_last():
+                self._reader.gc.ch = ""
+                break
+            self._reader.next()
 
         if self._reader.gc.has_next():
-            self._reader.gc.next()
+            # self._reader.next()
             if self._reader.check_pattern("[8-9]"):
                 self._reader.state = DecimalAnalyzer(self._reader).analyze()
             elif self._reader.check_pattern("\\."):
@@ -384,16 +450,20 @@ class OctNumberAnalyzer(NumberAnalyzer):
                 self._reader.add()
         z = self._reader.put(TableOut.TN)
         self._reader.out(TableLexem.TN, z)
+
+        if self._reader.current_last():
+            self._reader.gc.ch = ""
+
         return self._reader
 
 class DecimalAnalyzer(NumberAnalyzer):
     def analyze(self) -> Reader:
         while self._reader.check_pattern("[0-9]") and self._reader.gc.has_next():
-            self._reader.gc.next()
+            self._reader.next()
             self._reader.add()
 
         if self._reader.gc.has_next():
-            self._reader.gc.next()
+            self._reader.next()
             if self._reader.check_pattern("[Hh]"):
                 self._reader.add()
             elif self._reader.check_pattern("[Ee]"):
@@ -559,9 +629,15 @@ class DecimalAnalyzer(NumberAnalyzer):
 
 class HexAnalyzer(NumberAnalyzer):
     def analyze(self) -> Reader:
-        while self._reader.check_pattern("[0-9A-Fa-f]+") and self._reader.gc.has_next():
-            self._reader.add()
+        while self._reader.gc.has_next():
+            self._reader.next()
+            if self._reader.check_pattern("[0-9A-Fa-f]"):
+                self._reader.add()
+            else:
+                break
         if self._reader.check_pattern('[Hh]'):
+            self._reader.add()
+            self._reader.gc.ch = ""
             z = self._reader.put(TableOut.TN)
             self._reader.out(TableLexem.TN, z)
         else:
@@ -626,8 +702,14 @@ class ExponentAnalyzer(SubAnalyzer):
 
 class DelimiterAnalyzer(SubAnalyzer):
     def analyze(self) -> Reader:
-        logger.info(f"delimiter: {self._reader.gc.get_ch()}")
-        logger.info(f"delimiter buffer: {self._reader.gc.get_ch()}")
+
+        if self._reader.has_next():
+            self._reader.next()
+        else:
+            self._reader.gc.ch = ""
+
+        logger.info(f"delimiter: {self._reader.get_ch()}")
+        logger.info(f"delimiter buffer: {self._reader.get_ch()}")
         z = self._reader.look(TableSrc.TL)
         if z != -1:
             self._reader.out(TableLexem.TL, z)
