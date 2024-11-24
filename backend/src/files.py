@@ -1,4 +1,4 @@
-from .conf import get_global_config as config
+from conf import get_global_config as config
 
 
 def read_out(type: str):

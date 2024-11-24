@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 
-from backend.src.analyzer.lexical.const import State
+from src.analyzer.lexical.const import State
 
 
 class CodeRequestSchema(BaseModel):

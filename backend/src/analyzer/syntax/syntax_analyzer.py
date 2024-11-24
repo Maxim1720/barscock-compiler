@@ -1,8 +1,8 @@
 import re
 
-from backend.src import TableLexem
-from backend.src.conf import get_global_config as config
-from backend.src.files import read_out, read_res
+from analyzer.lexical.const import TableLexem
+from conf import get_global_config as config
+from files import read_out, read_res
 
 class LexemReader:
     def __init__(self):

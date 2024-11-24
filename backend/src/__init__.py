@@ -1,17 +1,21 @@
+import os.path
 import re
 
-from backend.src.analyzer.lexical.const import TableLexem
-from backend.src.analyzer.lexical.lexical_analyzer import Analyzer
-from backend.src.analyzer.syntax.syntax_analyzer import SyntaxAnalyzer
-from backend.src.conf import get_global_config as config
-from backend.src.files import read_res, read_out
+from analyzer.lexical.const import TableLexem
+from analyzer.lexical.lexical_analyzer import Analyzer
+from analyzer.syntax.syntax_analyzer import SyntaxAnalyzer
+from conf import get_global_config as config
+from files import read_res, read_out
 
 files = [
     "tw","tl","ti", "tn", "lex"
 ]
 
 for file in files:
-    with open(f"{config().OUT_DIR}/lex/{file}.txt", "w") as f:
+    file = f"{config().OUT_DIR}/lex/{file}.txt"
+    if os.path.exists(file):
+        os.remove(file)
+    with open(file, "a+") as f:
         f.write("")
 
 code = """

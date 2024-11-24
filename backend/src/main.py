@@ -30,7 +30,7 @@ async def root(code: CodeRequestSchema) -> AnalyzeResponseSchema:
     tl = read_out("tl")
     tn = read_out("tn")
     ti = read_out("ti")
-    print(state.value)
+    print(state)
     return AnalyzeResponseSchema(tw=tw, tl=tl, tn=tn, ti=ti, state=state.name)
 
 
