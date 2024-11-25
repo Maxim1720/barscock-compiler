@@ -156,11 +156,8 @@ class FloatExponentAnalyzer(NumberAnalyzer):
         z = self._reader.put(TableOut.TN)
         self._reader.out(TableLexem.TN, z)
 
-        if self._reader.current_last():
+        if self._reader.current_last() and not self._reader.is_delimiter():
             self._reader.gc.ch = ""
-        # else:
-        #     self._reader.state = State.ERROR
-
 
 class OctNumberAnalyzer(NumberAnalyzer):
     def analyze(self) -> Reader:
