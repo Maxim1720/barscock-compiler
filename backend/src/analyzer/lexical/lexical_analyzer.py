@@ -35,10 +35,7 @@ class Analyzer:
                 elif self._reader.get_ch() == '.':
                     if self._reader.buffer == "end":
                         self._reader.nill()
-                        self._reader.add()
-                        z = self._reader.look(TableSrc.TL)
-                        if z != -1:
-                            self._reader.out(TableLexem.TL, z)
+                        self._reader = DelimiterAnalyzer(self._reader).analyze()
                         self._reader.state = State.END
                         self._reader.gc.ch = ""
                     else:
