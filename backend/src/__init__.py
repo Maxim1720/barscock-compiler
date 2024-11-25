@@ -1,22 +1,24 @@
 import os.path
 import re
 
-from analyzer.lexical.const import TableLexem
-from analyzer.lexical.lexical_analyzer import Analyzer
-from analyzer.syntax.syntax_analyzer import SyntaxAnalyzer
-from conf import get_global_config as config
-from files import read_res, read_out
+from src.analyzer.lexical.const import TableLexem
+from src.analyzer.lexical.lexical_analyzer import Analyzer
+from src.analyzer.syntax.syntax_analyzer import SyntaxAnalyzer
+from src.conf import get_global_config as config
+from src.files import read_res, read_out, flush_out
 
 files = [
     "tw","tl","ti", "tn", "lex"
 ]
 
-for file in files:
-    file = f"{config().OUT_DIR}/lex/{file}.txt"
-    if os.path.exists(file):
-        os.remove(file)
-    with open(file, "a+") as f:
-        f.write("")
+flush_out()
+
+# for file in files:
+#     file = f"{config().OUT_DIR}/lex/{file}.txt"
+#     if os.path.exists(file):
+#         os.remove(file)
+#     with open(file, "a+") as f:
+#         f.write("")
 
 code = """
     program var a,b: int; c, d: float; e, f: bool; g: int;
@@ -24,6 +26,10 @@ code = """
     b as 7: e as 7.5e+575: d as c: e as true: f as false
     g as 010101abh
     s as 2343o
+    b as 0101b
+    hex as 123abcd123h
+    decFromBinary as 018
+    decFromBinary2 as 018d
     b as b min a
     if b LT a then a as a plus b else b as b min 5
     end.
@@ -69,7 +75,4 @@ def __main__():
     SyntaxAnalyzer().analyze()
 
 if __name__ == '__main__':
-    # print(
-    #     re.split(r"[^\w]", code.strip())
-    # )
     __main__()

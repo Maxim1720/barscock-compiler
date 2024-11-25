@@ -1,5 +1,5 @@
 from enum import Enum
-from conf import get_global_config
+from src.conf import get_global_config
 
 class State(Enum):
     START = 0
@@ -35,5 +35,6 @@ __all__ = [
     "TableSrc",
     "TableOut",
     "TableLexem",
+    "State"
 ]
 
