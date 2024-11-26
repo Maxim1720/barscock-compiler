@@ -3,8 +3,12 @@ from src.analyzer.lexical.const import TableSrc, TableLexem, State
 from src.analyzer.lexical.reader import Reader
 from src.analyzer.lexical.sub.sub import SubAnalyzer
 
+counter = 0
 
 class DelimiterAnalyzer(SubAnalyzer):
+    def __init__(self, reader: Reader):
+        super().__init__(reader)
+        self._reader.state = State.DELIMITER
 
     def __del__(self):
         self._reader.nill()
@@ -17,12 +21,14 @@ class DelimiterAnalyzer(SubAnalyzer):
             self._reader.gc.ch = ""
         else:
             self._reader.next()
-        print(self._reader.buffer)
         logger.info(f"delimiter: {self._reader.get_ch()}")
         logger.info(f"delimiter buffer: {self._reader.get_ch()}")
         z = self._reader.look(TableSrc.TL)
         if z != -1:
             self._reader.out(TableLexem.TL, z)
+            global counter
+            counter+=1
+            logger.info(f"delimiter №{counter}: {self._reader.buffer}")
         else:
             self._reader.state = State.ERROR
         return self._reader

@@ -1,5 +1,6 @@
 import abc
 from abc import ABC, abstractclassmethod
+from unittest import TestCase
 
 from src import Analyzer
 from src.analyzer.lexical.const import State
@@ -43,6 +44,7 @@ class BaseTests:
 
         def run_test(self):
             self.analyze()
+            print(read_lexems('tn'))
             self.call_asserts()
 
         def call_asserts(self):
@@ -53,6 +55,44 @@ class BaseTests:
             self.assertIs(len(read_lexems("tl")), 0)
 
 
+class TestExponenNumber(unittest.TestCase):
+    def testWithoutSign(self):
+        code = [
+            "123e123",
+        ]
+        for c in code:
+            flush_out()
+            state = Analyzer(c).analyze()
+            print(read_lexems('tn'))
+            self.assertIs(state, State.NUMBER)
+            self.assertIs(len(read_lexems("tn")),1)
+            flush_out()
+
+
+    def test_with_delimiter(self):
+        code = [
+            "123e123;",
+        ]
+        for c in code:
+            flush_out()
+            state = Analyzer(c).analyze()
+            self.assertIs(state, State.DELIMITER)
+            self.assertIs(len(read_lexems("tn")), 1)
+            self.assertIs(len(read_lexems("tl")), 1)
+            flush_out()
+
+    def test_with_bad_end(self):
+        code = [
+            "123e123z;",
+        ]
+        for c in code:
+            flush_out()
+            state = Analyzer(c).analyze()
+            self.assertIs(state, State.ERROR)
+            self.assertIs(len(read_lexems("tn")), 0)
+            self.assertIs(len(read_lexems("tl")), 0)
+            self.assertIs(len(read_lexems("ti")), 0)
+            flush_out()
 
 
 class TestFromBinaryToDecimal(unittest.TestCase):
@@ -113,6 +153,7 @@ class TestRepeatBinaryEnd(BaseTests.BaseIncorrectNumberTest):
 
     def test(self):
         self.run_test()
+        self.assertFalse(lexems_has("tn", self.code))
 
 class TestRepeatOctEnd(BaseTests.BaseIncorrectNumberTest):
     code = "234oo"
@@ -152,6 +193,27 @@ class TestCorrectExponentNumber(BaseTests.BaseTest):
 
 class TestNumber(unittest.TestCase):
 
+    def test_dec_with_delimiter(self):
+        codes = [
+            "111;",
+            "123;",
+            "123:",
+            "234;",
+            "789;",
+            "8989;",
+            "1234567890;"
+        ]
+        for code in codes:
+            flush_out()
+            state = Analyzer(code).analyze()
+            print(f"numbers: {read_lexems("tn")}")
+            self.assertIs(state, State.DELIMITER)
+            self.assertIs(len(read_lexems("tn")), 1)
+            self.assertIs(len(read_lexems("ti")), 0)
+            self.assertIs(len(read_lexems("tl")), 1)
+            flush_out()
+
+
     def test_from_binary_to_exponent_to_hex_is_success(self):
         codes = [
             "111eacdh",
@@ -177,10 +239,11 @@ class TestNumber(unittest.TestCase):
         for code in codes:
             flush_out()
             state = Analyzer(code).analyze()
-            print(read_lexems("ti"))
-            self.assertIs(state, State.NUMBER)
+            print(read_lexems("tl"))
+            self.assertIs(state, State.DELIMITER)
             self.assertIs(len(read_lexems("tn")), 1)
             self.assertIs(len(read_lexems("ti")), 0)
+            self.assertIs(len(read_lexems("tl")), 1)
             flush_out()
 
 
@@ -262,7 +325,7 @@ class TestIdentifier(unittest.TestCase):
         code = "testIdentifier2;"
         a = Analyzer(code)
         state = a.analyze()
-        self.assertIs(state, State.IDENTIFIER)
+        self.assertIs(state, State.DELIMITER)
         self.assertTrue(lexems_has('ti', "testIdentifier2"))
         self.assertIs(len(read_lexems("ti")), 1)
         self.assertIs(len(read_lexems("tn")), 0)
@@ -404,6 +467,59 @@ program = """
     end.
     """
 
+program2 = """
+    program 
+var 
+    a, b, c: int; 
+    c, d: float; 
+    e, f: bool; 
+    g, s, hex, decFromBinary, decFromBinary2: int;
+
+begin
+    a as 5;
+    b as 7;
+    e as 7.5e+575;
+    d as c;
+    e as true;
+    f as false;
+    g as 010101b;           
+    s as 2343o;             
+    b as 0101b;
+    hex as 123ABCDh;        
+    decFromBinary as 18;    
+    decFromBinary2 as 18d;
+    b as b min a;
+    if b LT a then 
+        a as a plus b 
+    else 
+        b as b min {
+        12dwa3123123 comment
+        12
+        dwa
+        awdaw
+        dwad
+        a
+        daw
+        dwa
+        ferg
+        reg
+        rt
+        ghtr
+        h
+        trh
+        }  5;
+        {123}
+        {dwad wa dwa dwa dw}
+        {
+        
+        dwadwadaw
+        
+        
+        }
+end.
+
+    """
+
 class TestDelimiter(unittest.TestCase):
     def test_only_dots(self):
         code = "...."
@@ -416,11 +532,25 @@ class TestDelimiter(unittest.TestCase):
         flush_out()
 
     def test_program(self):
-        code = program
+        code = program2
         flush_out()
         state = Analyzer(code).analyze()
         self.assertIs(state, State.END)
-        self.assertIs(len(read_lexems("tl")), 35)
+        print(read_lexems('tl'))
+        self.assertIs(len(read_lexems("tl")), 50)
+
+    def test_lexems_has_binaries(self):
+        # code = program2
+        flush_out()
+        state = Analyzer(program2).analyze()
+        b = '010101b'
+
+        has = False
+        for i in read_lexems('tn'):
+            if i == b:
+                has = True
+        self.assertTrue(has)
+        flush_out()
 
 
 if __name__ == '__main__':

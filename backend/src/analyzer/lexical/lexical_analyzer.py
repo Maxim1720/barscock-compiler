@@ -11,11 +11,34 @@ from .sub.delimiter.analyzer import DelimiterAnalyzer
 class Analyzer:
     def __init__(self, code: str):
         self._code = code
+        code = code.strip()
+
+        cleaned = False
+        while not cleaned:
+            cleaned = True
+            if "{" in code and "}" in code:
+                cleaned = False
+                code = f'{code[0:code.index("{")]}{code[code.index("}") + 1:]}'
+
+
         self._splitted_code = re.split(r"\s+", code.strip())
         logger.info(f"splitted:\n{'\n'.join(self._splitted_code)}")
         self._reader = Reader(self._splitted_code[0])
     def analyze(self) -> State:
         for token in self._splitted_code:
+            #b as b min 5;{123123123 comment}
+            comment = False
+            if token.startswith("{"):
+                comment = True
+
+            while comment:
+                for i in token:
+                    if i == '}':
+                        comment = False
+                break
+            if comment:
+                continue
+
             self._reader = Reader(token)
             self._reader.next()
             logger.info(f"reader: {self._reader.__dict__}")
@@ -43,6 +66,7 @@ class Analyzer:
                 else:
                     logger.info(f"ch: {self._reader.get_ch()} is delimiter")
                     self._reader = DelimiterAnalyzer(self._reader).analyze()
+                logger.info(f"STATE: {self._reader.state}")
                 if self._reader.state == State.ERROR:
                     return self._reader.state
 
@@ -74,8 +98,10 @@ class IdentifierAnalyzer(SubAnalyzer):
         else:
             z = self._reader.look(TableSrc.TL)
             if z != -1:
-                print(self._reader.buffer)
                 self._reader.out(TableLexem.TL, z)
+                from .sub.delimiter.analyzer import counter
+                counter += 1
+                logger.info(f"delimiter №{counter}: {self._reader.buffer}")
             else:
                 z = self._reader.put(TableOut.TI)
                 logger.info(f"putted identifier z: {z}")
@@ -95,5 +121,12 @@ class CommentAnalyzer(SubAnalyzer):
         self._reader.state = State.COMMENT
         return self._reader
 
+class CommentStartAnalyzer(SubAnalyzer):
+    def analyze(self) -> Reader:
+        pass
+
+class CommentEndAnalyzer(SubAnalyzer):
+    def analyze(self) -> Reader:
+        pass
 
 

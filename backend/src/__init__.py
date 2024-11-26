@@ -4,6 +4,7 @@ import re
 from src.analyzer.lexical.const import TableLexem
 from src.analyzer.lexical.lexical_analyzer import Analyzer
 from src.analyzer.syntax.syntax_analyzer import SyntaxAnalyzer
+from src.analyzer.syntax.tools import lex_table_from_file
 from src.conf import get_global_config as config
 from src.files import read_res, read_out, flush_out
 
@@ -71,8 +72,7 @@ def __main__():
 
     print(state)
 
-
-    SyntaxAnalyzer().analyze()
+    SyntaxAnalyzer(lex_table_from_file()).analyze()
 
 if __name__ == '__main__':
     __main__()

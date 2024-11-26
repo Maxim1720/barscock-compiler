@@ -1,44 +1,7 @@
 import re
 
-from src.analyzer.lexical.const import TableLexem
-from src.conf import get_global_config as config
-from src.files import read_out, read_res
-
-class LexemReader:
-    def __init__(self):
-        self._file = open(f"{config().OUT_DIR}/lex/lex.txt")
-        self._lexem = None
-
-    def __del__(self):
-        self._file.close()
-
-    def read(self):
-        line = self._file.readline()
-
-        line = re.split(" ", line)
-        line = map(str.strip, line)
-        line = list(map(int, line))
-
-        type = line[0]
-
-        lines = []
-
-        if type == TableLexem.TW.value:
-            lines = read_res("tw")
-        elif type == TableLexem.TL.value:
-            lines = read_res("tl")
-        elif type == TableLexem.TI.value:
-            lines = read_out("ti")
-        elif type == TableLexem.TN.value:
-            lines = read_out("tn")
-
-        for index, l in enumerate(lines):
-            if index == line[1]:
-                self._lexem = l
-                break
-
-    def readed_lexem(self):
-        return self._lexem
+from src.files import read_res
+from src.analyzer.syntax.reader import LexemReader
 
 
 class LexemTools:
@@ -49,40 +12,61 @@ class LexemTools:
         return self._reader.readed_lexem() == s
 
     def is_identifier(self):
-        return re.fullmatch(r'[a-zA-Z]+[A-Za-z0-9]*', self._reader.readed_lexem())
+        for i in read_res("ti"):
+            if i == self._reader.readed_lexem():
+                return True
+        return False
 
     def is_number(self):
-        pass
+        for i in read_res("tn"):
+            if i == self._reader.readed_lexem():
+                return True
+        return False
 
     def is_bool(self):
-        pass
+        return self._reader.readed_lexem() == "true" or self._reader.readed_lexem() == "false"
 
 
 class State:
     def __init__(self, reader: LexemReader):
         self._reader = reader
-        self._reader.read()
+        # self._reader.read()
         self._lexem_tools = LexemTools(self._reader)
 
     def check(self) -> LexemReader:
         pass
 
-    def _check_lexem(self, s: str):
-        if not self._lexem_tools.eq(s):
+    def _lexem_must_be(self, s: str):
+        if not self.eq(s):
             raise SyntaxError(f'expected "{s}" but given {self._reader.readed_lexem()}')
+        return True
 
+    def eq(self, s: str):
+        return LexemTools(self._reader).eq(s)
+
+    def is_identifier(self):
+        return LexemTools(self._reader).is_identifier()
+
+    def is_number(self):
+        return LexemTools(self._reader).is_number()
+
+    def is_bool(self):
+        return LexemTools(self._reader).is_bool()
 
 class P(State):
     def check(self):
-        self._check_lexem('program')
+        self._lexem_must_be('program')
+        self._reader.read()
         self._reader = D(self._reader).check()
         self._reader = B(self._reader).check()
-        self._check_lexem('.')
+        self._reader.read()
+        self._lexem_must_be('.')
+        return self._reader
 
 
 class D(State):
     def check(self):
-        self._check_lexem('var')
+        self._lexem_must_be('var')
         self._reader.read()
         if self._lexem_tools.is_identifier():
             return D1(self._reader).check()
@@ -90,44 +74,51 @@ class D(State):
 
 
 class D1(State):
-
-    def __init__(self, reader: LexemReader):
-        self._reader = reader
-        self._lexem_tools = LexemTools(self._reader)
-
     def check(self):
-        return I(self._reader).check()
+        self._reader = I(self._reader).check()
+        if self.eq(";"):
+            self._reader.read()
+            if self.is_identifier():
+                return D1(self._reader).check()
+            return self._reader
 
 
 class B(State):
     def check(self):
-        self._check_lexem('begin')
-        O(self._reader).check()
-        self._check_lexem('end')
+        self._lexem_must_be('begin')
+        self._reader.read()
+        self._reader = O(self._reader).check()
+        self._lexem_must_be('end')
         return self._reader
 
 
 class I(State):
     def check(self):
-        I1(self._reader).check()
-        self._check_lexem(':')
-        T(self._reader).check()
-        self._check_lexem(";")
+        self._reader = I1(self._reader).check()
+        self._lexem_must_be(':')
+        self._reader.read()
+        self._reader = T(self._reader).check()
+        self._reader.read()
+        self._lexem_must_be(";")
+        return self._reader
 
 
 class I1(State):
     def check(self):
         self._reader = I2(self._reader).check()
-        if self._check_lexem(','):
-            I1(self._reader).check()
-            I2(self._reader).check()
+        self._reader.read()
+        if self.eq(','):
+            self._reader.read()
+            self._reader = I1(self._reader).check()
+            # self._reader = I2(self._reader).check()
+        return self._reader
 
 
 class T(State):
     def check(self):
-        lt = self._lexem_tools
-        if not (lt.eq("int") or lt.eq("float") or lt.eq("bool")):
-            raise SyntaxError(self._reader.readed_lexem())
+        if not (self.eq("int") or self.eq("float") or self.eq("bool")):
+            raise SyntaxError(f"expected int|float|bool, given '{self._reader.readed_lexem()}'")
+        return self._reader
 
 
 class I2(State):
@@ -139,75 +130,90 @@ class I2(State):
 
 class O(State):
     def check(self):
-        O1(self._reader).check()
-        if self._check_lexem(';'):
-            O(self._reader).check()
-            O1(self._reader).check()
+        self._reader = O1(self._reader).check()
+        self._reader.read()
+        if self.eq(';'):
+            self._reader.read()
+            self._reader = O(self._reader).check()
+            # O1(self._reader).check()
+        return self._reader
 
 
 class O1(State):
     def check(self):
-        lt = self._lexem_tools
-        r = self._reader
-        if lt.eq(":") or lt.eq("\n"):
-            r.read()
-        elif lt.is_identifier():
-            A(r).check()
-        elif lt.eq("if"):
+        lex = self._reader.readed_lexem()
+        if self.eq(":") or self.eq("\n"):
+            self._reader.read()
+            return self._reader
+        elif self.is_identifier():
+            self._reader.read()
+            return A(self._reader).check()
+        elif self.eq("if"):
+            self._reader.read()
+            self._reader = E(self._reader).check()
+            self._reader.read()
+            self._lexem_must_be("then")
+            self._reader.read()
+            self._reader = O1(self._reader).check()
+            self._reader.read()
+            if self.eq("else"):
+                self._reader.read()
+                return O1(self._reader).check()
+        elif self.eq("for"):
+            self._reader = A(self._reader).check()
+            self._lexem_must_be("to")
+            self._reader.read()
             E(self._reader).check()
-            r.read()
-            self._check_lexem("then")
+            self._lexem_must_be("do")
             O1(self._reader).check()
-            r.read()
-            if lt.eq("else"):
-                O1(self._reader).check()
-        elif lt.eq("for"):
-            A(r).check()
-            self._check_lexem("to")
-            r.read()
-            E(r).check()
-            self._check_lexem("do")
-            O1(r).check()
-        elif lt.eq("while"):
-            E(r).check()
-            self._check_lexem("do")
-            O1(r).check()
-        elif lt.eq("read"):
-            self._check_lexem("(")
-            I1(r).check()
-            self._check_lexem(")")
-        elif lt.eq("write"):
-            self._check_lexem("(")
-            E1(r).check()
-            self._check_lexem(")")
+        elif self.eq("while"):
+            E(self._reader).check()
+            self._lexem_must_be("do")
+            O1(self._reader).check()
+        elif self.eq("read"):
+            self._lexem_must_be("(")
+            I1(self._reader).check()
+            self._lexem_must_be(")")
+        elif self.eq("write"):
+            self._lexem_must_be("(")
+            E1(self._reader).check()
+            self._lexem_must_be(")")
+        else:
+            raise SyntaxError(f"unexpected {self._reader.readed_lexem()}")
+        return self._reader
 
 
 class E1(State):
     def check(self):
-        E(self._reader).check()
-        if self._lexem_tools.eq(","):
-            E1(self._reader).check()
-
+        self._reader = E(self._reader).check()
+        if self.eq(","):
+            return E1(self._reader).check()
+        return self._reader
 
 class E(State):
     def check(self):
-        Z(self._reader).check()
-        if Z1.is_(self._lexem_tools):
-            Z1(self._reader).check()
-            E(self._reader).check()
+        self._reader = Z(self._reader).check()
+        self._reader.read()
+        if Z1.is_(LexemTools(self._reader)):
+            self._reader = Z1(self._reader).check()
+            self._reader = E(self._reader).check()
+        return self._reader
 
 
 class Z(State):
     def check(self):
-        J(self._reader).check()
-        if J1.is_(self._lexem_tools):
-            J1(self._reader).check()
-            Z(self._reader).check()
-
+        self._reader = J(self._reader).check()
+        if J1.is_(LexemTools(self._reader)):
+            self._reader = J1(self._reader).check()
+            self._reader = Z(self._reader).check()
+        return self._reader
 
 class Z1(State):
     def check(self):
-        pass
+        if not self.is_(LexemTools(self._reader)):
+            raise SyntaxError(f"unexpected {self._reader.readed_lexem()}")
+        self._reader.read()
+        return self._reader
 
     @staticmethod
     def is_(lt: LexemTools):
@@ -217,28 +223,31 @@ class Z1(State):
 
 class J(State):
     def check(self):
-        M(self._reader).check()
+        self._reader = M(self._reader).check()
         self._reader.read()
-        if M1.is_(self._lexem_tools):
-            M1(self._reader).check()
-            J(self._reader).check()
+        if M1.is_(LexemTools(self._reader)):
+            self._reader = M1(self._reader).check()
+            self._reader = J(self._reader).check()
+        return self._reader
 
 
 class M(State):
     def check(self):
-        lt = self._lexem_tools
-        r = self._reader
-        if lt.is_identifier() or lt.is_bool() or lt.is_number():
-            pass
-        elif lt.eq("~"):
-            r.read()
-            M(r).check()
-        elif lt.eq("("):
-            E(r).check()
-            r.read()
-            self._check_lexem(")")
+        if self.is_identifier():
+            self._reader = I2(self._reader).check()
+            # self._reader.read()
+        elif self.is_bool() or self.is_number():
+            self._reader.read()
+        elif self.eq("~"):
+            self._reader.read()
+            M(self._reader).check()
+        elif self.eq("("):
+            E(self._reader).check()
+            self._reader.read()
+            self._lexem_must_be(")")
         else:
             raise SyntaxError(self._reader.readed_lexem())
+        return self._reader
 
 
 class M1(State):
@@ -272,16 +281,18 @@ class L(State):
 
 class A(State):
     def check(self):
-        self._lexem_tools.eq("as")
+        self._lexem_must_be("as")
         self._reader.read()
         if not (self._lexem_tools.is_identifier() or self._lexem_tools.is_number() or self._lexem_tools.is_bool()):
-            raise SyntaxError(self._reader.readed_lexem())
+            raise SyntaxError(f"unexpected  '{self._reader.readed_lexem()}'")
+        return self._reader
 
 
 class SyntaxAnalyzer:
-    def __init__(self):
-        self._reader = LexemReader()
+    def __init__(self, lexem_table: list[list[int]]):
+        self._reader = LexemReader(lexem_table)
         self._lexem_tools = LexemTools(self._reader)
 
     def analyze(self):
+        self._reader.read()
         P(self._reader).check()
