@@ -85,7 +85,6 @@ class D(State):
         self._check_lexem('var')
         self._reader.read()
         if self._lexem_tools.is_identifier():
-            D1(self._reader).check()
             return D1(self._reader).check()
         return self._reader
 
