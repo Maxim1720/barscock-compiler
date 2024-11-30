@@ -131,11 +131,9 @@ class I2(State):
 class O(State):
     def check(self):
         self._reader = O1(self._reader).check()
-        self._reader.read()
         if self.eq(';'):
             self._reader.read()
             self._reader = O(self._reader).check()
-            # O1(self._reader).check()
         return self._reader
 
 
