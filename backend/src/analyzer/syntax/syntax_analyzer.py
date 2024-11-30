@@ -235,7 +235,6 @@ class Z1(State):
 class J(State):
     def check(self):
         self._reader = M(self._reader).check()
-        self._reader.read()
         if M1.is_(LexemTools(self._reader)):
             self._reader = M1(self._reader).check()
             self._reader = J(self._reader).check()
@@ -246,15 +245,14 @@ class M(State):
     def check(self):
         if self.is_identifier():
             self._reader = I2(self._reader).check()
-            # self._reader.read()
+            self._reader.read()
         elif self.is_bool() or self.is_number():
             self._reader.read()
         elif self.eq("~"):
             self._reader.read()
-            M(self._reader).check()
+            self._reader = M(self._reader).check()
         elif self.eq("("):
-            E(self._reader).check()
-            self._reader.read()
+            self._reader = E(self._reader).check()
             self._lexem_must_be(")")
         else:
             raise SyntaxError(self._reader.readed_lexem())
@@ -266,6 +264,8 @@ class M1(State):
         lt = self._lexem_tools
         if not (lt.eq("mult") or lt.eq("div") or lt.eq("and")):
             raise SyntaxError("expected 'mult', 'div' or 'and'")
+        self._reader.read()
+        return self._reader
 
     @staticmethod
     def is_(lt: LexemTools):
@@ -274,9 +274,11 @@ class M1(State):
 
 class J1(State):
     def check(self):
-        lt = self._lexem_tools
+        lt = LexemTools(self._reader)
         if not (lt.eq("plus") or lt.eq("min") or lt.eq("or")):
             raise SyntaxError(self._reader.readed_lexem())
+        self._reader.read()
+        return self._reader
 
     @staticmethod
     def is_(lt: LexemTools):
@@ -296,8 +298,9 @@ class A(State):
         self._reader.read()
         if not (self._lexem_tools.is_identifier() or self._lexem_tools.is_number() or self._lexem_tools.is_bool()):
             raise SyntaxError(f"unexpected  '{self._reader.readed_lexem()}'")
+        else:
+            self._reader = E(self._reader).check()
         return self._reader
-
 
 class SyntaxAnalyzer:
     def __init__(self, lexem_table: list[list[int]]):
