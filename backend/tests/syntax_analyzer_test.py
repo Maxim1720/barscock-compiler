@@ -13,23 +13,29 @@ var
     g, s, hex, decFromBinary, decFromBinary2: int;
 
 begin
-    a as 5;
-    b as 7;
+    read(a);
+    a as 5 plus 7;
+    b as 7 min 0;
     e as 7.5e+575;
-    d as c;
-    e as true;
-    f as false;
-    g as 010101b;           
+    d as c mult 3;
+    e as true or ~false;
+    f as false and false;
+    g as 010101b or 0101b;           
     s as 2343o;             
     b as 0101b;
     hex as 123ABCDh;        
     decFromBinary as 18;    
     decFromBinary2 as 18d;
     if b LT a then 
-        a as b 
+        a as b
     else
-        b as 5;
-        a as 7
+        b as 5 plus b: 
+        a as 7:
+        a as b:
+        b as g:
+        g as s;
+    for i as 7 to a plus 7 do a as a plus a: b as a;
+    write(a)
 end.
 
     """
