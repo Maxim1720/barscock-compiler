@@ -9,19 +9,15 @@ class LexemReader:
         self._readed = []
 
     def read(self):
-
         if not self.has_next():
             return False
-
         line = self._lexemes[self._index]
-
         read_dict = {
                 TableLexem.TW.value: lambda : read_res('tw'),
                 TableLexem.TL.value: lambda : read_res('tl'),
                 TableLexem.TI.value: lambda : read_res('ti'),
                 TableLexem.TN.value: lambda : read_res('tn'),
         }
-
         lines = read_dict[line[0]]()
         for index, l in enumerate(lines):
             if index == line[1]:
