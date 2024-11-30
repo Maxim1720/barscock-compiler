@@ -140,44 +140,58 @@ class O(State):
 class O1(State):
     def check(self):
         lex = self._reader.readed_lexem()
-        if self.eq(":") or self.eq("\n"):
+
+        if self.is_identifier():
             self._reader.read()
-            return self._reader
-        elif self.is_identifier():
-            self._reader.read()
-            return A(self._reader).check()
+            self._reader = A(self._reader).check()
         elif self.eq("if"):
             self._reader.read()
             self._reader = E(self._reader).check()
-            self._reader.read()
             self._lexem_must_be("then")
             self._reader.read()
             self._reader = O1(self._reader).check()
-            self._reader.read()
             if self.eq("else"):
                 self._reader.read()
-                return O1(self._reader).check()
+                self._reader = O1(self._reader).check()
+
         elif self.eq("for"):
+            self._reader.read()
+            self._reader = I2(self._reader).check()
+            self._reader.read()
             self._reader = A(self._reader).check()
             self._lexem_must_be("to")
             self._reader.read()
-            E(self._reader).check()
+            self._reader = E(self._reader).check()
             self._lexem_must_be("do")
-            O1(self._reader).check()
+            self._reader.read()
+            self._reader = O1(self._reader).check()
+
         elif self.eq("while"):
-            E(self._reader).check()
+            self._reader = E(self._reader).check()
             self._lexem_must_be("do")
-            O1(self._reader).check()
+            self._reader = O1(self._reader).check()
         elif self.eq("read"):
+            self._reader.read()
             self._lexem_must_be("(")
-            I1(self._reader).check()
+            self._reader.read()
+            self._reader = I1(self._reader).check()
             self._lexem_must_be(")")
+            self._reader.read()
+
         elif self.eq("write"):
+            self._reader.read()
             self._lexem_must_be("(")
-            E1(self._reader).check()
+            self._reader.read()
+            self._reader = E1(self._reader).check()
             self._lexem_must_be(")")
+            self._reader.read()
         else:
             raise SyntaxError(f"unexpected {self._reader.readed_lexem()}")
+
+        if self.eq(":") or self.eq("\n"):
+            self._reader.read()
+            self._reader = O1(self._reader).check()
+
         return self._reader
 
 
