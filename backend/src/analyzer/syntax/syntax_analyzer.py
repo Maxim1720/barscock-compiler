@@ -205,7 +205,6 @@ class E1(State):
 class E(State):
     def check(self):
         self._reader = Z(self._reader).check()
-        self._reader.read()
         if Z1.is_(LexemTools(self._reader)):
             self._reader = Z1(self._reader).check()
             self._reader = E(self._reader).check()
