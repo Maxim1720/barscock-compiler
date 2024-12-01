@@ -1,5 +1,6 @@
 import re
 
+from src.analyzer.symantic.analyzer.expression import IdentifiersExistsAnalyzer
 from src.analyzer.symantic.analyzer.identifier import IdentifiersAnalyzer
 from src.files import read_res
 from src.analyzer.syntax.reader import LexemReader
@@ -127,6 +128,7 @@ class I2(State):
     def check(self):
         if not self._lexem_tools.is_identifier():
             raise SyntaxError(self._reader.readed_lexem())
+        IdentifiersExistsAnalyzer(self._reader).analyze()
         return self._reader
 
 
@@ -144,6 +146,7 @@ class O1(State):
         lex = self._reader.readed_lexem()
 
         if self.is_identifier():
+            self._reader = I2(self._reader).check()
             self._reader.read()
             self._reader = A(self._reader).check()
         elif self.eq("if"):
