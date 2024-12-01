@@ -9,10 +9,11 @@ program var
     d: float; 
     e, f: bool; 
     g, s, hex, decFromBinary, decFromBinary2: int;
-
+    i: int;
+    lol: int;
 begin
     read(a);
-    
+    lol as 123;
     a as 5 plus 7;
     b as 7 min 0;
     e as 7.5e+575;
