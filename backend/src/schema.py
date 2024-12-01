@@ -1,7 +1,5 @@
 from pydantic import BaseModel
 
-from src.analyzer.lexical.const import State
-
 
 class CodeRequestSchema(BaseModel):
     data: str
