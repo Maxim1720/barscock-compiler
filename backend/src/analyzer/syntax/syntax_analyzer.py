@@ -167,8 +167,10 @@ class O1(State):
             self._reader = O1(self._reader).check()
 
         elif self.eq("while"):
+            self._reader.read()
             self._reader = E(self._reader).check()
             self._lexem_must_be("do")
+            self._reader.read()
             self._reader = O1(self._reader).check()
         elif self.eq("read"):
             self._reader.read()
