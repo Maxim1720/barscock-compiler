@@ -22,17 +22,30 @@ flush_out()
 #         f.write("")
 
 code = """
-    program var a,b: int; c, d: float; e, f: bool; g: int;
-    begin a as 5
-    b as 7: e as 7.5e+575: d as c: e as true: f as false
-    g as 010101abh
-    s as 2343o
-    b as 0101b
-    hex as 123abcd123h
-    decFromBinary as 018
-    decFromBinary2 as 018d
-    b as b min a
-    if b LT a then a as a plus b else b as b min 5
+    program var a,b: int; c,d: float; e,f: bool; g: int;
+    begin 
+        a as 5;
+        b as 7;
+        e as 7.5e+575; 
+        d as c;
+        e as true;
+        f as false;
+        g as 010101abh;
+        s as 2343o;
+        b as 0101b;
+        
+        hex as 123abcd123h;
+        
+        decFromBinary as 018;
+        decFromBinary2 as 018d;
+        
+        b as b min a;
+        
+        if b LT a 
+        then 
+            a as a plus b 
+        else
+            b as b min 5
     end.
     """
 
