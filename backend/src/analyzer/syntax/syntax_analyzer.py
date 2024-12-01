@@ -1,5 +1,6 @@
 import re
 
+from src.analyzer.symantic.analyzer.identifier import IdentifiersAnalyzer
 from src.files import read_res
 from src.analyzer.syntax.reader import LexemReader
 
@@ -55,6 +56,7 @@ class State:
 
 class P(State):
     def check(self):
+        IdentifiersAnalyzer().analyze()
         self._lexem_must_be('program')
         self._reader.read()
         self._reader = D(self._reader).check()
