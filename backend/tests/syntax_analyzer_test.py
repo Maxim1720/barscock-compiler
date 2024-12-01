@@ -1,19 +1,18 @@
 import unittest
 
-from src import SyntaxAnalyzer, lex_table_from_file, Analyzer
-from src.analyzer.syntax.reader import LexemReader
-from src.analyzer.syntax.syntax_analyzer import P
+from src.analyzer.syntax.tools import lex_table_from_file
+from src import SyntaxAnalyzer, Analyzer
 
 code = """
-    program 
-var 
+program var 
     a, b, c: int; 
-    c, d: float; 
+    d: float; 
     e, f: bool; 
     g, s, hex, decFromBinary, decFromBinary2: int;
 
 begin
     read(a);
+    
     a as 5 plus 7;
     b as 7 min 0;
     e as 7.5e+575;
@@ -26,6 +25,7 @@ begin
     hex as 123ABCDh;        
     decFromBinary as 18;    
     decFromBinary2 as 18d;
+    
     if b LT a then 
         a as b
     else
@@ -34,8 +34,12 @@ begin
         a as b:
         b as g:
         g as s;
+        
     for i as 7 to a plus 7 do a as a plus a: b as a;
-    write(a)
+    
+    write(a plus a plus a);
+    
+    while b LT a do a as a plus 2
 end.
 
     """
