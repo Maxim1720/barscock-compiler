@@ -1,5 +1,7 @@
+from src.analyzer.symantic.analyzer.utils import semantic_analysis
+from src.analyzer.syntax.expression import E
 from src.analyzer.syntax.tools import lex_table_from_file
-from src.analyzer.syntax.reader import LexemReader
+from src.analyzer.syntax.reader import LexemReader, LexemTools
 from src.conf import get_global_config
 from src.analyzer.symantic.files import create_ti, get_identifiers_from_file
 from src.analyzer.symantic.types import FoundedIdentifier
@@ -79,3 +81,49 @@ class IdentifiersAnalyzer:
         for i in ids:
             if i.defined > 1:
                 raise SyntaxError(f"duplicate definition identifier: {i.name}")
+
+
+class IdentifiersExistsAnalyzer:
+    def __init__(self, reader: LexemReader):
+        self._reader = reader
+
+    def analyze(self):
+        identifier = self._reader.readed_lexem()
+        if not identifier in [x.name for x in get_identifiers_from_file()]:
+            raise SyntaxError(f"identifier '{identifier}' is undefined")
+
+
+class IdentifierAssignTypesAnalyzer:
+    def __init__(self, reader: LexemReader):
+        self._reader = reader
+
+    def analyze(self):
+
+        r = LexemReader(self._reader._lexemes.copy())
+        r._lexem = self._reader._lexem
+        r._index = self._reader._index
+        r._readed = [self._reader.readed_lexem()]
+
+        print(r.readed_lexem())
+
+        id = r.readed_lexem()
+        r.read()
+        sign = r.readed_lexem()
+        if not LexemTools(r).eq('as'):
+            return
+        r.read()
+
+        src_lexems = r._readed.copy()
+        r = E(r).check()
+
+        for i in get_identifiers_from_file():
+            if i.name == id:
+                id = i.type
+                break
+        lexems = [id, sign, r.get_type()]
+        try:
+            semantic_analysis(lexems)
+            return r
+        except TypeError as t:
+            t.add_note(" ".join(src_lexems))
+            raise t

@@ -33,7 +33,7 @@ def get_identifiers_from_file() -> list[FoundedIdentifier]:
             items.append(
                 FoundedIdentifier(**{
                     'name': splitted[0],
-                    'type': splitted[2],
+                    'type': splitted[2].strip(),
                     'defined': int(splitted[1]),
                 })
             )
