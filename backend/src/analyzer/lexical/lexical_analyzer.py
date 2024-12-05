@@ -1,5 +1,7 @@
 import re
 
+from src.files import write_out
+from src.files import read_out
 from . import logger
 from .const import State, TableSrc, TableOut, TableLexem
 from src.analyzer.lexical.sub.number.analyzer import NumberAnalyzer, FloatNumberAnalyzer
@@ -95,10 +97,14 @@ class IdentifierAnalyzer(SubAnalyzer):
         logger.info(f"z: {z}")
         if z != -1:
             self._reader.out(TableLexem.TW, z)
+            if self._reader.buffer not in  read_out("tw"):
+                write_out(TableLexem.TW.name.lower(), self._reader.buffer)
         else:
             z = self._reader.look(TableSrc.TL)
             if z != -1:
                 self._reader.out(TableLexem.TL, z)
+                if self._reader.buffer not in read_out("tl"):
+                    write_out(TableLexem.TL.name.lower(), self._reader.buffer)
                 from .sub.delimiter.analyzer import counter
                 counter += 1
                 logger.info(f"delimiter №{counter}: {self._reader.buffer}")
