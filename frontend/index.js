@@ -1,5 +1,7 @@
 const btn = document.querySelector(".btn");
 let api_url = `/api`;
+syntaxResultSelector = document.querySelector('.syntax_result')
+semanticResultSelector = document.querySelector('.semantic_result')
 
 btn.addEventListener('click', () => {
     const input = document.querySelector('.code-input');
@@ -14,7 +16,8 @@ btn.addEventListener('click', () => {
     })
         .then(r => r.json()) // Получаем JSON из ответа
         .then(data => {
-            console.log(data);
+
+            console.log(data)
 
             // Получаем тело таблицы
             const tableBody = document.querySelector('.lex-analyze');
@@ -48,9 +51,15 @@ btn.addEventListener('click', () => {
                 // Добавляем строку в таблицу
                 tableBody.appendChild(row);
             }
+            if(data.state === "ERROR"){
+                throw Error("Ошибка при анализе")
+            }
         })
         .catch(err => {
             console.error("Ошибка запроса:", err);
+
+            syntaxResultSelector.innerHTML = ""
+            semanticResultSelector.innerHTML = ""
 
             const tableBody = document.querySelector('.lex-analyze');
             tableBody.innerHTML = `
@@ -60,8 +69,6 @@ btn.addEventListener('click', () => {
         });
 
 
-    syntaxResultSelector = document.querySelector('.syntax_result')
-    semanticResultSelector = document.querySelector('.semantic_result')
 
     fetch(`${api_url}/syntax`, {
         method: 'POST',
