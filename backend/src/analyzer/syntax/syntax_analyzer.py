@@ -110,10 +110,13 @@ class O1(State):
             self._reader = I2(self._reader).check()
             self._reader.read()
             self._reader = A(self._reader).check()
+            type = self._reader.get_type()
             self._lexem_must_be("to")
             self._reader._readed = []
             self._reader.read()
             self._reader = E(self._reader).check()
+            if type != self._reader.get_type():
+                raise TypeError(f"expected {type}, got {self._reader.get_type()}")
             self._lexem_must_be("do")
             self._reader.read()
             self._reader = O1(self._reader).check()
