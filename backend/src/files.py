@@ -1,8 +1,8 @@
 import os.path
 import re
 
-from src import TableLexem
-from src.conf import get_global_config as config
+from .analyzer.lexical.const import TableLexem
+from .conf import get_global_config as config
 
 
 def read_out(type: str):
@@ -26,7 +26,10 @@ def read_res(type: str):
     return items
 
 
-
+def write_out(table_type: str, val: str):
+    path = f"{config().OUT_DIR}/lex/{table_type}.txt"
+    with open(path, "a", encoding='utf-8') as f:
+        f.write(f'{val}\n')
 
 def read_lexems(type: str):
     lexems = []
@@ -55,7 +58,9 @@ def flush_out():
     files = [
         "ti",
         "tn",
-        "lex"
+        "lex",
+        "tw",
+        "tl"
     ]
 
     for f in files:
