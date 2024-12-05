@@ -1,9 +1,9 @@
-const btn = document.querySelector(".btn")
-let api_url = `/api`
+const btn = document.querySelector(".btn");
+let api_url = `/api`;
 
-btn.addEventListener('click', (e) => {
+btn.addEventListener('click', () => {
     const input = document.querySelector('.code-input');
-    fetch(`${api_url}/analyze`, {
+    fetch(`${api_url}/lexical`, {
         method: 'POST',
         headers: {
             "Content-Type": "application/json"
@@ -14,17 +14,101 @@ btn.addEventListener('click', (e) => {
     })
         .then(r => r.json()) // Получаем JSON из ответа
         .then(data => {
-            console.log(data); // Логируем данные
+            console.log(data);
 
-            // res = (Object.values(data).map(i=>i.join(' '))).join("<br>")
-            res = Object.keys(data).map(k=> k + ": " + data[k].join(" ")).join("<br/>")
+            // Получаем тело таблицы
+            const tableBody = document.querySelector('.lex-analyze');
+            tableBody.innerHTML = ""; // Очищаем таблицу перед заполнением
 
-            // console.log(res)
-            document.querySelector('.lex-analyze').innerHTML = res
-            //"tw: " + data.tw.join(' ') + "<br>" + "tl: " + data.tl.join(' ') + "<br>" + "tn: " + data.tn.join(' ') + "<br>"; // Выводим данные
+            // Находим максимальное количество строк (для выравнивания)
+            const maxRows = Math.max(
+                data.tw?.length || 0,
+                data.ti?.length || 0,
+                data.tl?.length || 0,
+                data.tn?.length || 0
+            );
+
+            // Генерируем строки таблицы
+            for (let i = 0; i < maxRows; i++) {
+                const row = document.createElement('tr');
+
+                // Функция для создания ячейки с данными
+                const createCell = (array, index) => {
+                    const cell = document.createElement('td');
+                    cell.textContent = array && array[index] ? array[index] : "—";
+                    return cell;
+                };
+
+                // Добавляем ячейки в строку
+                row.appendChild(createCell(data.tw, i)); // Ключевые слова
+                row.appendChild(createCell(data.ti, i)); // Идентификаторы
+                row.appendChild(createCell(data.tl, i)); // Разделители
+                row.appendChild(createCell(data.tn, i)); // Числа
+
+                // Добавляем строку в таблицу
+                tableBody.appendChild(row);
+            }
         })
         .catch(err => {
-            document.querySelector('.lex-analyze').innerHTML = err;
+            console.error("Ошибка запроса:", err);
+
+            const tableBody = document.querySelector('.lex-analyze');
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="4" class="text-danger">Произошла ошибка: ${err.message}</td>
+                </tr>`;
         });
+
+
+    syntaxResultSelector = document.querySelector('.syntax_result')
+    semanticResultSelector = document.querySelector('.semantic_result')
+
+    fetch(`${api_url}/syntax`, {
+        method: 'POST',
+        headers: {
+            "Accept": "application/json"
+        }
+    })
+        .then(r => {
+            if (r.ok) {
+                syntaxResultSelector.innerHTML = "Синтаксический анализ прошел успешно"
+                syntaxResultSelector.classList.add("bg-success")
+                syntaxResultSelector.classList.remove("bg-danger")
+
+                semanticResultSelector.innerHTML = "Семантический анализ прошел успешно"
+                semanticResultSelector.classList.add("bg-success")
+                semanticResultSelector.classList.remove("bg-danger")
+            } else {
+                r.json().then(
+                    data => {
+                        selector = data.error === 'type' ? semanticResultSelector : syntaxResultSelector
+                        selector.innerHTML = data.message
+                        selector.classList.add("bg-danger")
+                        selector.classList.remove("bg-success")
+
+                        selectors = [
+                            syntaxResultSelector, semanticResultSelector
+                        ]
+
+                        selectors.forEach(
+                            s=>{
+                                if (s !== selector){
+                                    s.innerHTML = ""
+                                    s.classList.remove("bg-success")
+                                    s.classList.remove("bg-danger")
+                                }
+                            }
+                        )
+
+                    }
+                )
+            }
+        })
+        .catch(err => {
+            alert(err)
+            // syntaxResultSelector.innerHTML = err.message
+            // syntaxResultSelector.classList.add('bg-danger')
+            // syntaxResultSelector.classList.remove('bg-success')
+        })
 
 });

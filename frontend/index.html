@@ -16,40 +16,12 @@
         <div class="col-md-6 section">
             <div class="card">
                 <div class="card-body">
-                    <h5 class="card-title">Source code:</h5>
-                    <textarea id="code-input" class="form-control code-input" rows="10" placeholder="Write your code here..."></textarea>
+                    <h5 class="card-title">Исходный код модельного языка:</h5>
+                    <textarea id="code-input" class="form-control code-input" rows="25"
+                              placeholder="Напишите ваш код сюда..."></textarea>
                     <button class="btn btn-primary mt-3 w-100">
-                        Analyze
+                        Анализировать
                     </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Блок фильтров -->
-        <div class="col-md-6 section">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">Filters:</h5>
-                    <div class="filters" id="filters">
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="true" id="lexical">
-                            <label class="form-check-label" for="lexical">
-                                Lexical
-                            </label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="syntax">
-                            <label class="form-check-label" for="syntax">
-                                Syntax
-                            </label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="semantic">
-                            <label class="form-check-label" for="semantic">
-                                Semantic
-                            </label>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
@@ -59,11 +31,52 @@
     <div class="mt-4">
         <div class="card">
             <div class="card-body">
-                <h5 class="card-title">Lexical Analysis:</h5>
-                <div class="lex-analyze"></div>
+                <h5 class="card-title">Лексический анализ:</h5>
+                <table class="table table-bordered">
+                    <thead>
+                    <tr>
+                        <th scope="col">Ключевые слова</th>
+                        <th scope="col">Идентификаторы</th>
+                        <th scope="col">Разделители</th>
+                        <th scope="col">Числа</th>
+                    </tr>
+                    </thead>
+                    <tbody class="lex-analyze">
+                    <!-- Данные будут добавляться через JS -->
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
+
+    <div class="mt-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Синтаксический анализ:</h5>
+                <span>
+                    Результат: <span class="syntax_result"></span>
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Семантический анализ:</h5>
+                <span>
+                    Результат: <span class="semantic_result"></span>
+                </span>
+            </div>
+        </div>
+    </div>
+
+
+</div>
+
+
+</div>
+
 </div>
 
 <!-- Подключение Bootstrap JS -->
