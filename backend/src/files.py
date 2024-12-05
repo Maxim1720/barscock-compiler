@@ -63,6 +63,10 @@ def flush_out():
         "tl"
     ]
 
+    if not os.path.exists(f"{config().OUT_DIR}/lex"):
+        os.makedirs(f"{config().OUT_DIR}/lex")
+
+
     for f in files:
         path = f"{config().OUT_DIR}/lex/{f}.txt"
         if os.path.exists(path):
