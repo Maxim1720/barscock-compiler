@@ -3,6 +3,8 @@ from src.analyzer.lexical.const import TableSrc, TableLexem, State
 from src.analyzer.lexical.reader import Reader
 from src.analyzer.lexical.sub.sub import SubAnalyzer
 
+from src.files import write_out, read_out
+
 counter = 0
 
 class DelimiterAnalyzer(SubAnalyzer):
@@ -26,6 +28,8 @@ class DelimiterAnalyzer(SubAnalyzer):
         z = self._reader.look(TableSrc.TL)
         if z != -1:
             self._reader.out(TableLexem.TL, z)
+            if self._reader.buffer not in read_out("tl"):
+                write_out(TableLexem.TL.name.lower(), self._reader.buffer)
             global counter
             counter+=1
             logger.info(f"delimiter №{counter}: {self._reader.buffer}")
