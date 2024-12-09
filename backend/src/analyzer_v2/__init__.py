@@ -15,7 +15,7 @@ begin
     lol as 123;
     a as 5 plus 7;
     b as 7 min 0;
-    d as 7.5e+575;
+    d as 7.5e+5;
     d as 5.5 mult 3;
     e as true or ~false;
     f as false and false;
