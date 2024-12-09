@@ -58,13 +58,6 @@ tokens = (
 print(tokens)
 t_ignore = ' \t\n'
 
-
-
-
-
-
-t_BINARY = r"[0-1]+(b|B)"
-
 literals = ['(', ')', ';', ":", ",", '.', '~', '{', '}'
     , 'A'
     , 'B'
