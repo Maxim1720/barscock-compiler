@@ -4,7 +4,7 @@ import ast
 from ply.lex import LexToken, Lexer
 from ply.yacc import YaccProduction, LRParser
 
-from .exceptions import AlreadyExistsError, UnknownIdentifierError
+from .exceptions import AlreadyExistsError, UnknownIdentifierError, IdentifierIsNoneError
 from .identifiers import *
 
 start = '_P'
@@ -134,14 +134,10 @@ def p_a(p):
             id = i
             break
     if id is None:
-        raise UnknownIdentifierError(f"Identifier '{id}' not defined")
-    print(f"types: {id.type} {type(p[3])}")
-
-    need_type = f"<class '{id.type}'>"
-    print(f"need type: {need_type}")
-
-    if str(type(p[3])) != need_type:
-        raise TypeError(f"Type error: {type(p[3])} -> {id.type}, identifier is '{id.name}'")
+        raise UnknownIdentifierError(f"Identifier '{p[1]}' not defined")
+    need_type = re.split(r"\'", str(type(p[3])))[1]
+    if id.type != need_type:
+        raise TypeError(f"Type error: {id.type} != {need_type} at identifier '{id.name}'")
     id.value = p[3]
     print(f'A: {p[0]}')
 
@@ -197,47 +193,11 @@ def p_e1(p):
     else:
         p[0] = p[1]
 
-
-#
-# def p_binary_operators(p):
-#     '''
-#     expression : expression PLUS term
-#     | expression MIN term
-#     term : term MULT factor
-#     | term DIV factor'''
-#
-#     if p[2] == 'plus':
-#         p[0] = p[1] + p[3]
-#     elif p[2] == 'min':
-#         p[0] = p[1] - p[3]
-#     elif p[2] == 'mult':
-#         p[0] = p[1] * p[3]
-#     elif p[2] == 'div':
-#         p[0] = p[1] / p[3]
-#
-# def p_term_factor(p):
-#     """term : factor"""
-#     p[0] = p[1]
-#
-# def p_factor_num(p):
-#     """factor : NUMBER
-#     | ID
-#     | _L
-#     | NOT factor
-#     """
-#     p[0] = p[1]
-#
-# def p_factor_expr(p):
-#     """factor : LPAREN expression RPAREN"""
-#     p[0] = p[2]
-
-
 def p_e(p):
     """
     _E : _Z
     """
-    print(f'evaling {p[1]}')
-    p[0] = p[1]
+    p[0] = to_typed_value(p[1])
     print(f"E: {p[0]}")
 
 def p_e_rec(p):
@@ -257,16 +217,16 @@ def p_z_rec(p):
     print(f"Z rec: {p[0]}")
 
 def p_j(p):
-    """
-    _J : _M
-      | _J M1 _M
-    """
-    if len(p) > 2:
-        p[0] = f"{p[1]} {p[2]} {p[3]}"
-        p[0] = eval(p[0])
-    else:
-        p[0] = p[1]
+    """_J : _M"""
+    p[0] = p[1]
     print(f"J: {p[0]}")
+
+def p_j_rec(p):
+    """_J : _J M1 _M"""
+    p[0] = f"{p[1]} {p[2]} {p[3]}"
+    p[0] = eval(p[0])
+    print(f"rec J: {p[0]}")
+
 
 def p_m(p):
     """
@@ -285,6 +245,9 @@ def p_id(p):
         if i.name == p[1]:
             p[0] = i.value
             break
+    if p[0] is None:
+        raise IdentifierIsNoneError(f"Identifier '{p[1]}' is None")
+    print(f"id M: {p[0]}")
 
 def p_not_m(p):
     """
@@ -363,7 +326,7 @@ def p_n(p):
     """_N : NUMBER"""
 
     n:str = p[1]
-    if re.fullmatch(r"\d+[bBhHoO]", n):
+    if re.fullmatch(r"\d+[bBoO]", n):
         suffix = n[-1].lower()
         base = {
             'h': 16,
@@ -373,6 +336,8 @@ def p_n(p):
         p[0] = int(f"0{suffix}{n[:-1]}", base[suffix])
     elif re.fullmatch(r"\d+[dD]", n):
         p[0] = int(n[:-1])
+    elif re.fullmatch(r"[\dA-Fa-f]+[hH]", n):
+        p[0] = int(n[:-1], 16)
     else:
         p[0] = p[1]
     print(f'number: {p[0]}')
@@ -384,3 +349,13 @@ def p_t(p):
       | BOOL
     """
     p[0] = p[1]
+
+
+import ast
+
+def to_typed_value(value):
+    try:
+        return ast.literal_eval(value)
+    except (ValueError, SyntaxError):
+        return value
+
