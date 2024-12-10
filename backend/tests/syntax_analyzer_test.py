@@ -1,7 +1,8 @@
 import unittest
 
 from src.analyzer.syntax.tools import lex_table_from_file
-from src import SyntaxAnalyzer, Analyzer
+from src.analyzer.syntax.syntax_analyzer import SyntaxAnalyzer
+from src.analyzer.lexical.lexical_analyzer import Analyzer
 
 code = """
 program var 
