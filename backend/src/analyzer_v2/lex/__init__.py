@@ -52,11 +52,10 @@ tokens = (
     'ID',
 
     #number
-    "BINARY"
+    "NEWLINE",
 )
-
-print(tokens)
-t_ignore = ' \t\n'
+t_NEWLINE= '\s'
+t_ignore = ' \t'
 
 literals = ['(', ')', ';', ":", ",", '.', '~', '{', '}'
     , 'A'
