@@ -4,3 +4,6 @@ class AlreadyExistsError(Exception):
 
 class UnknownIdentifierError(Exception):
     pass
+
+class IdentifierIsNoneError(Exception):
+    pass
