@@ -1,6 +1,6 @@
 from src.analyzer_v2.lex.analyze import analyze_lex
-from src.analyzer_v2.syntax.analyze import analyze_syntax, analyze_syntax_input
-from src.analyzer_v2.syntax.identifiers import flush
+from src.analyzer_v2.syntax.analyze import analyze_syntax
+
 
 def main():
     code = """program var 
@@ -13,7 +13,7 @@ def main():
     begin
         read(a);
         lol as 123;
-        a as 5 plus 7;
+        a as 5 mult 5 plus 7;
         b as 7 min 0;
         d as 7.5e+5;
         d as 5.5 mult 3;
@@ -24,8 +24,8 @@ def main():
         hex as 123ABCDh;        
         decFromBinary as 18;    
         decFromBinary2 as 18d;
-        
         g as 77;
+        
         if a LT b
         then 
             b as b
@@ -48,3 +48,5 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+

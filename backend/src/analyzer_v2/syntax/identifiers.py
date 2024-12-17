@@ -22,3 +22,9 @@ def add_id(id:Identifier):
 def flush():
     global founded
     founded = []
+
+def get_id_by_name(name):
+    return list(filter(lambda x: x.name == name, founded))[0]
+
+def id_exists(name):
+    return len(list(filter(lambda x: x.name == name, founded))) > 0
