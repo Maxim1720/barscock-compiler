@@ -1,6 +1,13 @@
-from src.analyzer_v2.semantic.identifier import IdentifierChecker
-from src.analyzer_v2.translator.node.node import Node, register_prefix, register
+from src.analyzer_v2.translator.node.node import Node, register, register_prefix
 
+
+class ForLoopNode(Node):
+    def __init__(self, count):
+        super().__init__('FOR-LOOP')
+        self.counter = count
+
+    def generate_code(self):
+        return f'for_loop_{self.counter}:'
 
 class ForAssignNode(Node):
     def __init__(self):
@@ -21,7 +28,7 @@ class ForConditionNode(Node):
         super().__init__("FOR-Condition")
         self.count  = count
     def generate_code(self):
-        return f"for_loop_{self.count}:\ncmp {register_prefix}cx, {register_prefix}bx\njge end_for_{self.count}"
+        return f"cmp {register_prefix}cx, {register_prefix}bx\njge end_for_{self.count}"
 
 class ForIncrementNode(Node):
     def __init__(self, counter):
@@ -37,4 +44,4 @@ class ForEndNode(Node):
         self.counter = counter
 
     def generate_code(self):
-        return f"end_for_{self.counter}"
+        return f"end_for_{self.counter}:"

@@ -1,52 +1,23 @@
+import subprocess
+
+from src.analyzer_v2.lex import *
 from src.analyzer_v2.lex.analyze import analyze_lex
 from src.analyzer_v2.syntax.analyze import analyze_syntax
 
 
 def main():
-    code = """program var 
-        a, b, c: int;
-        d: float; 
-        e, f: bool; 
-        g, s, hex, decFromBinary, decFromBinary2: int;
-        i: int;
-        lol: int;
-    begin
-        read(a);
-        lol as 123;
-        a as 5 mult 5 plus 7;
-        b as 7 min 0;
-        d as 7.5e+5;
-        d as 5.5 mult 3;
-        e as true or ~false;
-        f as false and false;
-        s as 2343o;             
-        {b as 0101b;}
-        hex as 123ABCDh;        
-        decFromBinary as 18;    
-        decFromBinary2 as 18d;
-        g as 77;
-        
-        if a LT b
-        then 
-            b as b
-        else
-            b as 5 plus b:
-            a as 7:
-            a as b:
-            b as g:
-            g as s;
-            
-        for i as 7 to a plus 7 
-        do a as a plus a: b as a;
-        write(a plus a plus a);
-        while e do a as g plus 2;
-    end.
-    """
+    with open('code.txt', 'r') as f:
+        code = f.read()
     analyze_lex(code)
+    print("Лексический анализ прошел успешно!")
     analyze_syntax(code)
+    print("Синтаксический и семантический анализ прошли успешно")
 
+    import os
+    subprocess.run(['nasm', '-f', 'elf64',
+                    f'{os.getcwd()}/output.asm',
+                    '-o', f'{os.getcwd()}/output.o'])
 
+    print("Объектный файл успешно скомпилирован!")
 if __name__ == '__main__':
     main()
-
-

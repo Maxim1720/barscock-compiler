@@ -10,12 +10,16 @@ from ..semantic.identifier import IdChecker, AssignmentChecker, IdentifierChecke
 from ..translator.node.arithmetic import MultNode, DivNode, AndNode, AddNode, MinNode, OrNode
 from ..translator.node.boolean_operations import LTNode, GTNode, LENode, GENode, NEQNode, EQNode
 from ..translator.node.default import UtilsFuncsNode
-from ..translator.node.id import IdentifierNode, DefinitionNode, VarSectionNode, AssignNode
-from ..translator.node.node import Node, ValueNode, TextSectionNode
-from ..translator.node.operator.condition import IfNode, ElseNode, ThenNode, EndIfNode, ThenEndNode, ElseEndNode
+from ..translator.node.id import IdentifierNode, DefinitionNode, VarSectionNode, AssignNode, BufferSection
+from ..translator.node.node import Node, ValueNode, TextSectionNode, EndNode
+from ..translator.node.operator.condition import IfNode, ElseNode, EndIfNode, ThenEndNode, ElseEndNode
 from ..translator.node.operator.io import ReadNode, WriteNode
-from ..translator.node.operator.loop.for_loop import ForAssignNode, ForToNode, ForConditionNode, ForIncrementNode, ForEndNode
-from ..translator.node.operator.loop.while_loop import WhileLoopNode, WhileEndNode
+from ..translator.node.operator.loop.for_loop import ForAssignNode, ForToNode, ForConditionNode, ForIncrementNode, \
+    ForEndNode, ForLoopNode
+from ..translator.node.operator.loop.while_loop import WhileLoopNode, WhileEndNode, WhileConditionNode
+from src import debug
+
+from src.analyzer_v2.lex import *
 
 start = '_P'
 
@@ -33,14 +37,18 @@ def p_p(p):
     """_P : PROGRAM _D _B DOT"""
     p[0] = f'{p[1]} {p[2]} {p[3]} {p[4]}'
     lol = instructions
-    print("GENERATED: ")
-    for i in instructions:
-        print(i.generate_code())
+    with open('output.asm', 'w') as f:
+        for i in instructions:
+            f.write(i.generate_code()+'\n')
+        # print(i.generate_code())
 
 
 def p_b(p):
     """_B : BEGIN _O END"""
     p[0] = f'{p[1]} {p[2]} {p[3]}'
+    instructions.append(
+        EndNode()
+    )
 
 
 def p_d(p):
@@ -49,11 +57,13 @@ def p_d(p):
     | VAR
     """
     p[0] = p[1]
-    instructions.append(UtilsFuncsNode())
+    instructions.append(BufferSection())
     instructions.append(VarSectionNode())
     for i in founded:
         instructions.append(DefinitionNode(i.name, i.type))
     instructions.append(TextSectionNode())
+    instructions.append(UtilsFuncsNode())
+
 
 
 def p_d1_rec(p):
@@ -78,7 +88,8 @@ def p_i(p):
         if i.count > 1:
             raise AlreadyExistsError(f"Identifier '{i.name}' already exists")
 
-    print(f'ids: {[f.name for f in founded]}')
+    if debug:
+        print(f'ids: {[f.name for f in founded]}')
 
 
 def p_i1(p):
@@ -147,7 +158,8 @@ def p_o1(p):
     | _V
     """
     p[0] = p[1]
-    print(f"O1: {p[0]}")
+    if debug:
+        print(f"O1: {p[0]}")
     for i in p[1]['nodes']:
         instructions.append(i)
 
@@ -204,7 +216,8 @@ def p_f1(p):
     """
     global if_counter
     p[0] = f'{p[1]} {p[2].value} {p[3]} {p[4]}'
-    print(f'F1: {p[0]}')
+    if debug:
+        print(f'F1: {p[0]}')
 
     if p[2].type != 'bool':
         raise TypeError(f"Type error: {p[2]} != bool at if statement")
@@ -215,7 +228,8 @@ def p_f1(p):
     p[0]['nodes'].extend(p[4]['nodes'])
     p[0]['nodes'].append(ThenEndNode(if_counter))
     # w = p[0]
-    print(f"F1: {p[0]}")
+    if debug:
+        print(f"F1: {p[0]}")
 
 for_counter = 0
 def p_w(p):
@@ -229,6 +243,7 @@ def p_w(p):
             ForAssignNode(),
             # *p[4]['nodes'],
             ForToNode(),
+            ForLoopNode(for_counter),
             ForConditionNode(for_counter),
             *p[6]['nodes'],
             ForIncrementNode(for_counter),
@@ -244,7 +259,8 @@ def p_y(p):
     _Y : WHILE _E DO O2
     """
     p[0] = f'{p[1]} {p[2]} {p[3]} {p[4]}'
-    print(f"Y: {p[0]}")
+    if debug:
+        print(f"Y: {p[0]}")
 
     if p[2].type != 'bool':
         raise TypeError(f"Type error: {p[2]} != bool at while statement")
@@ -254,7 +270,7 @@ def p_y(p):
         "nodes": [
             ForAssignNode(),
             WhileLoopNode(while_counter),
-            ForConditionNode(while_counter),
+            WhileConditionNode(while_counter),
             *p[4]['nodes'],
             WhileEndNode(while_counter)
         ]
@@ -268,7 +284,8 @@ def p_u(p):
     """
     p[0] = f'{p[1]} {p[2]} {p[3]} {p[4]}'
     IdChecker(p[3]).check()
-    print(f"READ: {p[0]}")
+    if debug:
+        print(f"READ: {p[0]}")
 
     p[0] = {
         "nodes": []
@@ -286,8 +303,9 @@ def p_v(p):
         "nodes": []
     }
 
-    for i in re.split(",", p[3].value):
-        p[0]['nodes'].append(WriteNode(i))
+    # for i in re.split(",", p[3].value):
+
+    p[0]['nodes'].append(WriteNode(p[3].value))
 
 
 def p_e1(p):
@@ -300,7 +318,9 @@ def p_e1(p):
         #     'nodes': p[1]['nodes'].extend(p[3]['nodes'])
         # }
     else:
+        l = p[1]
         p[0] = p[1]
+
         # p[0] = {
         #     "nodes": p[1]['nodes']
         # }
@@ -352,7 +372,8 @@ def p_e_rec(p):
 def p_z(p):
     """_Z : _J"""
     p[0] = p[1]
-    print(f"Z: {[f for f in p]}")
+    if debug:
+        print(f"Z: {[f for f in p]}")
 
 
 def p_z_rec(p):
@@ -369,20 +390,23 @@ def p_z_rec(p):
     instructions.append(
         sign[p[2]](p[3].value)
     )
-    print(f"Z rec: {p[0]}")
+    if debug:
+        print(f"Z rec: {p[0]}")
 
 
 def p_j(p):
     """_J : _M"""
     p[0] = p[1]
-    print(f"J: {p[0]}")
+    if debug:
+        print(f"J: {p[0]}")
 
 
 def p_j_rec(p):
     """_J : _J M1 _M"""
     p[0] = f"{p[1].value} {p[2]} {p[3].value}"
     # p[0] = eval(p[0])
-    print(f"rec J: {p[0]}")
+    if debug:
+        print(f"rec J: {p[0]}")
     p[0] = Expression(TypeChecker().compare(p[1].type, p[3].type, p[2]), p[0])
 
     sign = {
@@ -408,7 +432,8 @@ def p_m1(p):
     }
     # p[0] = sign[p[1]]
     p[0] = p[1]
-    print(f"M1: p[1]={p[1]}")
+    if debug:
+        print(f"M1: p[1]={p[1]}")
 
 
 def p_j1(p: YaccProduction):
@@ -429,7 +454,8 @@ def p_z1(p):
        | GT
        | GE
     """
-    print(f"Z1: {[f for f in p]}")
+    if debug:
+        print(f"Z1: {[f for f in p]}")
     op = {
         'NEQ': '!=',
         "EQ": "==",
@@ -449,14 +475,16 @@ def p_m(p):
       | PAREN_M
     """
     p[0] = p[1]
-    print(f"M: p[1]={p[1]}")
+    if debug:
+        print(f"M: p[1]={p[1]}")
 
 
 def p_id(p):
     """_M : I2"""
     IdChecker(p[1]).check()
     _id = get_id_by_name(p[1])
-    print(f"ID in expression: {_id}")
+    if debug:
+        print(f"ID in expression: {_id}")
     p[0] = _id.type
     p[0] = Expression(p[0], p[1])
 
@@ -469,7 +497,13 @@ def p_not_m(p):
     """
     if p[2].type != 'bool':
         raise TypeError(f"Expected: bool. Got type: {p[2]}'")
-    p[0] = Expression('bool', f'{p[1]}{p[2]}')
+
+    bools = {
+        "true": 1,
+        "false": 0
+    }
+
+    p[0] = Expression('bool', f'{p[1]}{bools[p[2].value]}')
 
 
 def p_paren_m(p):
@@ -496,9 +530,11 @@ def p_n(p):
     """_N : NUMBER"""
     p[0] = 'int'
     n: str = p[1]
-    print(f'value parse : {p[1]}')
+    if debug:
+        print(f'value parse : {p[1]}')
     p[0] = Expression(NumberTypeParser(n).get_value_type(), p[1])
-    print(f'number: {p[0]}')
+    if debug:
+        print(f'number: {p[0]}')
 
     instructions.append(ValueNode(p[1]))
 

@@ -2,7 +2,9 @@
 import ply.lex as lexer
 from src.analyzer_v2.lex import *
 
-lex = lexer.lex(debug=True)
+from src import debug
+
+lex = lexer.lex(debug=debug)
 
 def analyze_lex(code):
     lex.input(code)
@@ -10,4 +12,5 @@ def analyze_lex(code):
         tok = lex.token()
         if not tok:
             break
-        print(tok)
+        if debug:
+            print(tok)

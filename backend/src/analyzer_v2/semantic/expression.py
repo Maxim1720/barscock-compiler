@@ -1,6 +1,7 @@
 import re
 from dataclasses import dataclass
 
+from src import debug
 
 
 @dataclass
@@ -104,7 +105,8 @@ class NumberTypeParser:
     def get_value_type(self) -> str:
         _type = 'int'
 
-        print(f'value is : {self.value}' )
+        if debug:
+            print(f'value is : {self.value}' )
 
         if re.fullmatch(r"\d+[bBoO]", self.value):
             pass

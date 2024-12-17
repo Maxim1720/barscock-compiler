@@ -1,5 +1,3 @@
-from src.files import read_res
-
 tokens = (
     # key words
     'PROGRAM',

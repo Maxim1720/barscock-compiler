@@ -59,5 +59,5 @@ class OrNode(Node):
         self.val = self._booleans[self.val] if val in self._booleans else self.val
 
     def generate_code(self):
-        return f'mov {register_prefix}bx, {self.val}\nor {register_prefix}bx'
+        return f'mov {register_prefix}bx, {self.val}\nor {register_prefix}bx, {register}'
 

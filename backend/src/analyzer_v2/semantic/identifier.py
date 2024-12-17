@@ -1,5 +1,6 @@
 import re
 
+from src import debug
 from src.analyzer_v2.syntax.exceptions import UnknownIdentifierError
 from src.analyzer_v2.syntax.identifiers import founded
 
@@ -9,7 +10,8 @@ class IdentifierChecker:
         self.name = name
 
     def exists(self):
-        print(f"founded to check: {founded}")
+        if debug:
+            print(f"founded to check: {founded}")
         if self.name in [i.name for i in founded]:
             return True
         return False
@@ -21,7 +23,8 @@ class IdChecker:
 
     def check(self):
         ids = re.split(",", self.i1)
-        print(f"ids in read: {ids}")
+        if debug:
+            print(f"ids in read: {ids}")
         for i in ids:
             if not IdentifierChecker(i).exists():
                 raise UnknownIdentifierError(f"Identifier '{i}' not defined")

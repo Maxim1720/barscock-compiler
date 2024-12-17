@@ -60,4 +60,4 @@ class BufferSection(Node):
         super().__init__("BufferSection")
 
     def generate_code(self):
-        return f"""section .bss\nbuffer {register_prefix}esb 32"""
+        return f"""section .bss\nbuffer {register_prefix}esb 32\nlength equ 20"""

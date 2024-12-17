@@ -24,7 +24,7 @@ class ThenEndNode(Node):
         self.counter = count
 
     def generate_code(self):
-        return f"jmp enf_if_label_{self.counter}"
+        return f"jmp end_if_label_{self.counter}"
 
 class ElseNode(Node):
     def __init__(self, count):

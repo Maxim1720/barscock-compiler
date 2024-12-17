@@ -1,8 +1,4 @@
 import unittest
-from src.analyzer_v2.translator.node import *
-from src.analyzer_v2.translator.node.arithmetic import AddNode, MinNode, MultNode, DivNode
-from src.analyzer_v2.translator.node.id import IdentifierNode, VarSectionNode, DefinitionNode, BufferSection
-from src.analyzer_v2.translator.node.node import AssignNode
 
 
 class AssignTest(unittest.TestCase):

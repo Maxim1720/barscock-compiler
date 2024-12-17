@@ -1,23 +1,11 @@
-FROM python:3.12-slim as builder
-RUN pip install poetry
+FROM debian:stable as build
+RUN apt update
+RUN apt install python3 nasm pip pipx -y
 RUN curl -sSL https://install.python-poetry.org | python3 -
+RUN export PATH="$HOME/.poetry/bin:$PATH"
+
+#FROM build as prod
+
+COPY . backend
 WORKDIR /backend
-COPY poetry.lock .
-COPY pyproject.toml .
-RUN poetry config virtualenvs.in-project true && poetry install --no-root --only main
-RUN .venv/bin/pip show uvicorn
-
-
-FROM python:3.12-slim as deploy
-COPY --from=builder /backend/.venv /backend/.venv
-ENV PATH="/backend/.venv/bin:$PATH"
-WORKDIR /backend
-COPY ./src /backend/src
-COPY ./entrypoint.sh .
-COPY ./res/ ./res/
-
-ENV RES_DIR=/backend/res
-ENV OUT_DIR=/backend/out
-
-RUN chmod +x entrypoint.sh
-ENTRYPOINT ["bash", "entrypoint.sh"]
+ENTRYPOINT ["python3", "src/analyzer_v2/main.py"]
