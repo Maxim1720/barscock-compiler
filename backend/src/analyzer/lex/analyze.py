@@ -12,5 +12,5 @@ def analyze_lex(code):
         tok = lex.token()
         if not tok:
             break
-        if debug:
-            print(tok)
+        # if debug:
+        print(tok)

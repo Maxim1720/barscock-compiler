@@ -1,3 +1,10 @@
+import os
+
+from src.analyzer.lex.file import exists
+from src.analyzer.lex.writer import write, flush
+
+flush(f'{os.getcwd()}/out/lex/ti.txt')
+
 tokens = (
     # key words
     'PROGRAM',
@@ -181,6 +188,11 @@ t_NUMBER = r"""
 def t_ID(t):
     r"[a-zA-Z][a-zA-Z0-9]*"
     t.type = reserved.get(t.value, 'ID')
+
+    file = f'{os.getcwd()}/out/lex/ti.txt'
+    if t.type == "ID" and not exists(t.value, file):
+        print(f'founded:{t.value}')
+        write(t.value, file)
     return t
 
 

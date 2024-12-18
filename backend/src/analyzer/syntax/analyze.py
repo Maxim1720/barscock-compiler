@@ -6,7 +6,7 @@ from src import debug
 from src.analyzer.syntax.identifiers import flush
 from src.analyzer.syntax.parser import *
 
-parser = yacc.yacc(debug=debug, start=start)
+parser = yacc.yacc(start=start)
 
 def analyze_syntax(code):
     result = parser.parse(code)
