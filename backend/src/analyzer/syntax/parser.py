@@ -27,10 +27,11 @@ instructions: list[Node] = []
 
 
 def p_error(p: LexToken):
+    line_number = p.lineno - len(open(f'{os.getcwd()}/code.txt', 'r').readlines())
     if p is None:
         print("Syntax error end of input'")
     else:
-        print(f"Syntax error at {p} ")
+        raise SyntaxError(f"Синтаксическая ошибка на строке {line_number}. Неожиданная лексема: {p.value}.")
 
 
 def p_p(p):
