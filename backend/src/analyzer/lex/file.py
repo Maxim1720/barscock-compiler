@@ -10,3 +10,20 @@ def exists(content, path):
                     return True
 
     return False
+
+
+
+def is_tw(token):
+    with open(f'{os.getcwd()}/res/tw.txt', 'r') as f:
+        for line in f.readlines():
+            if line.strip() == token:
+                return True
+    return False
+
+
+def is_tl(token):
+    with open(f'{os.getcwd()}/res/tl.txt', 'r') as f:
+        for line in f.readlines():
+            if line.strip() == token:
+                return True
+    return False
