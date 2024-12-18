@@ -4,7 +4,7 @@ from src.analyzer.lex import *
 
 from src import debug
 
-lex = lexer.lex(debug=debug)
+lex = lexer.lex(debug=False)
 
 def analyze_lex(code):
     lex.input(code)
@@ -13,4 +13,4 @@ def analyze_lex(code):
         if not tok:
             break
         # if debug:
-        print(tok)
+        # print(tok)
