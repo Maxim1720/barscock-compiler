@@ -6,12 +6,12 @@ from src import debug
 from src.analyzer.syntax.identifiers import flush
 from src.analyzer.syntax.parser import *
 
-parser = yacc.yacc(start=start)
+parser = yacc.yacc(debug=True, start=start)
 
 def analyze_syntax(code):
     result = parser.parse(code)
     # print(f"Syntax analyze result: {str(result)}")
-    flush()
+    flush('')
 
 
 def analyze_syntax_input():
