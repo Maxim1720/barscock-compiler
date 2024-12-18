@@ -12,6 +12,7 @@ uvicorn = "^0.32.0"
 pydantic = "^2.9.2"
 pydantic-settings = "^2.6.1"
 ply = "^3.11"
+colorama = "^0.4.6"
 
 
 [build-system]
