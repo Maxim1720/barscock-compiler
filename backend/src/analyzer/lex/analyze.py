@@ -1,6 +1,6 @@
 
 import ply.lex as lexer
-from src.analyzer_v2.lex import *
+from src.analyzer.lex import *
 
 from src import debug
 

@@ -3,8 +3,8 @@ import os
 import ply.yacc as yacc
 
 from src import debug
-from src.analyzer_v2.syntax.identifiers import flush
-from src.analyzer_v2.syntax.parser import *
+from src.analyzer.syntax.identifiers import flush
+from src.analyzer.syntax.parser import *
 
 parser = yacc.yacc(debug=debug, start=start)
 

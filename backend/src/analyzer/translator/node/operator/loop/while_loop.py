@@ -1,4 +1,4 @@
-from src.analyzer_v2.translator.node.node import Node, register, register_prefix
+from src.analyzer.translator.node.node import Node, register, register_prefix
 
 
 class WhileLoopNode(Node):

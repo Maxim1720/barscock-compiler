@@ -1,8 +1,8 @@
 import re
 
 from src import debug
-from src.analyzer_v2.syntax.exceptions import UnknownIdentifierError
-from src.analyzer_v2.syntax.identifiers import founded
+from src.analyzer.syntax.exceptions import UnknownIdentifierError
+from src.analyzer.syntax.identifiers import founded
 
 
 class IdentifierChecker:

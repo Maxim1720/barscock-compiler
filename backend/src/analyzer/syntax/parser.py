@@ -19,7 +19,7 @@ from ..translator.node.operator.loop.for_loop import ForAssignNode, ForToNode, F
 from ..translator.node.operator.loop.while_loop import WhileLoopNode, WhileEndNode, WhileConditionNode
 from src import debug
 
-from src.analyzer_v2.lex import *
+from src.analyzer.lex import *
 
 start = '_P'
 

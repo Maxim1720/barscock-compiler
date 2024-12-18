@@ -1,4 +1,4 @@
-from src.analyzer_v2.translator.node.node import Node, register_prefix, register
+from src.analyzer.translator.node.node import Node, register_prefix, register
 
 compare_result_register = "al"
 

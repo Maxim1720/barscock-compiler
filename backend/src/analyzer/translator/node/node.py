@@ -1,4 +1,4 @@
-from src.analyzer_v2.translator.utils.convertor import float_to_ieee754
+from src.analyzer.translator.utils.convertor import float_to_ieee754
 
 register = "rax"
 register_prefix = "r"

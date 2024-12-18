@@ -1,5 +1,5 @@
-from src.analyzer_v2.syntax.identifiers import id_exists
-from src.analyzer_v2.translator.node.node import Node, register, register_prefix
+from src.analyzer.syntax.identifiers import id_exists
+from src.analyzer.translator.node.node import Node, register, register_prefix
 
 
 class ReadNode(Node):
