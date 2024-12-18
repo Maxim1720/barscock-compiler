@@ -1,9 +1,25 @@
 import os
+import re
 
-from src.analyzer.lex.file import exists
+
+from src.analyzer.lex.file import exists, is_tw, is_tl
 from src.analyzer.lex.writer import write, flush
 
+os.makedirs(f"{os.getcwd()}/out", exist_ok=True)
+
 flush(f'{os.getcwd()}/out/lex/ti.txt')
+flush(f'{os.getcwd()}/out/lex/tl.txt')
+flush(f'{os.getcwd()}/out/lex/tw.txt')
+flush(f'{os.getcwd()}/out/lex/tn.txt')
+
+result_table = {
+    "tw": [],
+    "tl": [],
+    "tn": [],
+    "ti": []
+}
+
+lines_count = 0
 
 tokens = (
     # key words
@@ -51,18 +67,49 @@ tokens = (
     'NOT',
     # "NEWLINE",
 
+    # "DELIMITER",
     # other
 
     "NUMBER",
     'ID',
 
-    #number
+    # number
     "NEWLINE",
 )
-t_NEWLINE= '\s'
+
+def t_newline(t):
+    r"""\n+"""
+    t.lexer.lineno += len(t.value)
+
+def t_ignore_COMMENT(t):
+    r"\{[^}]*\}"
+
+    path_to_table = os.getcwd() + '/out/lex/tl.txt'
+
+    bracers = ["{", "}"]
+    for i in bracers:
+        if not exists(i, path_to_table):
+            write(i, path_to_table)
+            result_table['tl'].append(f"'{i}'")
+
+
+
+
+t_NEWLINE = r'\n'
 t_ignore = ' \t'
 
-literals = ['(', ')', ';', ":", ",", '.', '~', '{', '}'
+
+
+literals = [
+    '(',
+    ')',
+    ';',
+    ":",
+    ",",
+    '.',
+    '~',
+    '{',
+    '}'
     , 'A'
     , 'B'
     , 'C'
@@ -134,14 +181,7 @@ precedence = (
     ('right', 'NOT'),  # Unary minus operator
 )
 
-t_ignore_COMMENT = r"\{[^}]*\}"
-t_DOT = r'\.'
-t_SEMICOLON = r';'
-t_COLON = r':'
-t_COMMA = r','
-t_NOT = r'~'
-t_LPAREN = r'\('
-t_RPAREN = r'\)'
+
 
 reserved = {
     "as": 'AS',
@@ -176,12 +216,40 @@ reserved = {
     'and': 'AND'
 }
 
-t_NUMBER = r"""
-    [0-1]+[bB]|
-    [0-7]+[oO]|
-    [0-9a-fA-F]+[hH]|
-    (?:\d*\.\d+|\d+)(?:[eE][+-]?\d+)?[dD]?
-    """
+
+def t_DELIMITER(t):
+    r"""\.|;|:|,|~|\(|\)"""
+    types = {
+        ".": "DOT",
+        ":": "COLON",
+        ";": "SEMICOLON",
+        ",": "COMMA",
+        "~": "NOT",
+        "(": "LPAREN",
+        ")": "RPAREN",
+    }
+    t.type = types[t.value]
+    path_to_table = os.getcwd() + '/out/lex/tl.txt'
+    if not exists(t.value, path_to_table):
+        write(t.value, path_to_table)
+        result_table['tl'].append(f"'{t.value}'")
+    return t
+
+
+
+def t_NUMBER(t):
+    r"""[0-1]+[bB]|
+        [0-7]+[oO]|
+        [0-9a-fA-F]+[hH]|
+        (?:\d*\.\d+|\d+)(?:[eE][+-]?\d+)?[dD]?
+        """
+    path_to_table = os.getcwd()+"/out/lex/tn.txt"
+    if not exists(t.value, path_to_table):
+        write(t.value, path_to_table)
+        result_table["tn"].append(t.value)
+    return t
+
+
 
 
 
@@ -189,18 +257,29 @@ def t_ID(t):
     r"[a-zA-Z][a-zA-Z0-9]*"
     t.type = reserved.get(t.value, 'ID')
 
-    file = f'{os.getcwd()}/out/lex/ti.txt'
-    if t.type == "ID" and not exists(t.value, file):
-        print(f'founded:{t.value}')
-        write(t.value, file)
+    tables_path = f'{os.getcwd()}/out/lex'
+    ti = f'{tables_path}/ti.txt'
+    tw = tables_path + '/tw.txt'
+    tl = tables_path + '/tl.txt'
+
+    if not exists(t.value, ti):
+        if t.type == "ID":
+            write(t.value, ti)
+            result_table['ti'].append(t.value)
+        else:
+            if is_tw(t.value) and not exists(t.value, tw):
+                write(t.value, tw)
+                result_table['tw'].append(t.value)
+            elif is_tl(t.value) and not exists(t.value, tl):
+                write(t.value, tl)
+                result_table['tl'].append(t.value)
+
     return t
 
 
-def t_newline(t):
-    r'\n+'
-    t.lexer.lineno += len(t.value)
+
 
 
 def t_error(t):
-    print("Illegal character '%s'" % t.value[0])
     t.lexer.skip(1)
+    raise SyntaxError(f"Недопустимый символ '{t.value[0]}'. Строка {t.lineno}")
