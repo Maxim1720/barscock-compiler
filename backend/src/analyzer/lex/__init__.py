@@ -5,12 +5,12 @@ import re
 from src.analyzer.lex.file import exists, is_tw, is_tl
 from src.analyzer.lex.writer import write, flush
 
-os.makedirs(f"{os.getcwd()}/out", exist_ok=True)
+os.makedirs(os.path.join(os.getcwd(), 'out'), exist_ok=True)
 
-flush(f'{os.getcwd()}/out/lex/ti.txt')
-flush(f'{os.getcwd()}/out/lex/tl.txt')
-flush(f'{os.getcwd()}/out/lex/tw.txt')
-flush(f'{os.getcwd()}/out/lex/tn.txt')
+flush(os.path.join(os.getcwd(),'out','lex','ti.txt'))
+flush(os.path.join(os.getcwd(),"out","lex","tl.txt"))
+flush(os.path.join(os.getcwd(),"out","lex","tw.txt"))
+flush(os.path.join(os.getcwd(),"out","lex","tn.txt"))
 
 result_table = {
     "tw": [],
@@ -84,7 +84,7 @@ def t_newline(t):
 def t_ignore_COMMENT(t):
     r"\{[^}]*\}"
 
-    path_to_table = os.getcwd() + '/out/lex/tl.txt'
+    path_to_table = os.path.join(os.getcwd(), 'out','lex','tl.txt')
 
     bracers = ["{", "}"]
     for i in bracers:
@@ -229,7 +229,7 @@ def t_DELIMITER(t):
         ")": "RPAREN",
     }
     t.type = types[t.value]
-    path_to_table = os.getcwd() + '/out/lex/tl.txt'
+    path_to_table = os.path.join(os.getcwd(), 'out','lex','tl.txt')
     if not exists(t.value, path_to_table):
         write(t.value, path_to_table)
         result_table['tl'].append(f"'{t.value}'")
@@ -257,10 +257,10 @@ def t_ID(t):
     r"[a-zA-Z][a-zA-Z0-9]*"
     t.type = reserved.get(t.value, 'ID')
 
-    tables_path = f'{os.getcwd()}/out/lex'
-    ti = f'{tables_path}/ti.txt'
-    tw = tables_path + '/tw.txt'
-    tl = tables_path + '/tl.txt'
+    tables_path = os.path.join(os.getcwd(), "out", "lex")
+    ti = os.path.join(tables_path,'ti.txt')
+    tw = os.path.join(tables_path,'tw.txt')
+    tl = os.path.join(tables_path,'tl.txt')
 
     if not exists(t.value, ti):
         if t.type == "ID":
