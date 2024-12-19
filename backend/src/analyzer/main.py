@@ -8,7 +8,7 @@ from src.analyzer.syntax.analyze import analyze_syntax
 
 
 def main():
-    with open(f'{os.getcwd()}/code.txt', 'r') as f:
+    with open(f"{os.path.join(os.getcwd(),'code.txt')}", 'r') as f:
         code = f.read()
     try:
         analyze_lex(code)
@@ -23,8 +23,8 @@ def main():
         print("-" * 100)
 
         subprocess.run(['nasm', '-f', 'elf64',
-                        f'{os.getcwd()}/output.asm',
-                        '-o', f'{os.getcwd()}/output.o'])
+                        f'{os.path.join(os.getcwd(), "output.asm")}',
+                        '-o', f'{os.path.join(os.getcwd(), "output.o")}'])
         print("Объектный файл успешно скомпилирован!")
     except Exception as e:
         print(Fore.RED + str(e) + Style.RESET_ALL)
