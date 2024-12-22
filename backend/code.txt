@@ -1,38 +1,36 @@
 program var
-        a, b, c: int;
-        d: float;
-        e, f: bool;
-        g, s, hex, decFromBinary, decFromBinary2: int;
-        i: int;
-        lol: int;
-    begin
-        read(a);
-        lol as 123;
-        a as 5 mult 5 plus 7;
-        b as 7 min 0;
-        d as 7.5e+5;
-        d as 5.5 mult 3 plus 5 min 7;
-        e as true or ~false;
-        f as false and false;
-        s as 2343o;
-        {b as 0101b;}
-        hex as 123ABCDh;
-        decFromBinary as 18;
-        decFromBinary2 as 18d;
-        g as 77;
+{identifiers}
+a, b, i: int;
+c, d: float;
 
-        if a LT b
-        then
-            b as b
-        else
-            b as 5 plus b:
-            a as 7:
-            a as b:
-            b as g:
-            g as s;
+{operators}
+begin
+{assignment}
+a as 6;
+b as 8;
+{read}
+read(c);
+d as c plus 6;
+{write}
+write(d);
 
-        for i as 7 to a plus 7
-        do a as a plus a: b as a;
-        write(a plus a plus a);
-        while e do a as g plus 2;
+{id as 5 plus 5;}
+
+{if-then-else}
+if d GT c
+then c as c mult 2
+else c as 1.1e6:
+ write(c);
+
+{for loop}
+for i as 0 to 10 do
+c as c plus i:
+d as d plus i;
+
+write(c);
+write(d);
+
+while c LE d
+do c as c plus 1;
+
 end.
