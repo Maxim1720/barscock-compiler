@@ -30,7 +30,7 @@ def p_error(p: LexToken):
     if p is None:
         raise SyntaxError('Syntax error EOF')
     else:
-        line_number = p.lineno - len(open(f'{os.getcwd()}/code.txt', 'r').readlines()) -1
+        line_number = p.lineno - len(open(f'{Config().ROOT_DIR}/code.txt', 'r').readlines()) -1
         raise SyntaxError(f"Синтаксическая ошибка на строке {line_number}. Неожиданная лексема: '{p.value}'.")
 
 

@@ -4,14 +4,16 @@ import re
 
 from src.analyzer.lex.file import exists, is_tw, is_tl, write_lex
 from src.analyzer.lex.writer import write, flush
+from src.config import Config
 
-os.makedirs(os.path.join(os.getcwd(), 'out'), exist_ok=True)
+os.makedirs(os.path.join(Config().ROOT_DIR, 'out'), exist_ok=True)
 
-flush(os.path.join(os.getcwd(),'out','lex','ti.txt'))
-flush(os.path.join(os.getcwd(),"out","lex","tl.txt"))
-flush(os.path.join(os.getcwd(),"out","lex","tw.txt"))
-flush(os.path.join(os.getcwd(),"out","lex","tn.txt"))
-flush(os.path.join(os.getcwd(),"out","lex","lex.txt"))
+project_root = Config().ROOT_DIR
+flush(os.path.join(project_root,'out','lex','ti.txt'))
+flush(os.path.join(project_root,"out","lex","tl.txt"))
+flush(os.path.join(project_root,"out","lex","tw.txt"))
+flush(os.path.join(project_root,"out","lex","tn.txt"))
+flush(os.path.join(project_root,"out","lex","lex.txt"))
 
 result_table = {
     "tw": [],
@@ -85,7 +87,7 @@ def t_newline(t):
 def t_ignore_COMMENT(t):
     r"\{[^}]*\}"
 
-    path_to_table = os.path.join(os.getcwd(), 'out','lex','tl.txt')
+    path_to_table = os.path.join(Config().ROOT_DIR, 'out','lex','tl.txt')
 
     bracers = ["{", "}"]
     for i in bracers:
@@ -223,7 +225,7 @@ def t_NUMBER(t):
         [0-9a-fA-F]+[hH]|
         (?:\d*\.\d+|\d+)(?:[eE][+-]?\d+)?[dD]?
         """
-    path_to_table = os.getcwd()+"/out/lex/tn.txt"
+    path_to_table = Config().ROOT_DIR+"/out/lex/tn.txt"
     if not exists(t.value, path_to_table):
         write(t.value, path_to_table)
         write_lex(t.value, 'tn')
@@ -245,7 +247,7 @@ def t_DELIMITER(t):
     t.type = types[t.value]
     if t.type == 'DOT':
         t.lexer.lexstate = "END"
-    path_to_table = os.path.join(os.getcwd(), 'out','lex','tl.txt')
+    path_to_table = os.path.join(Config().ROOT_DIR, 'out','lex','tl.txt')
     if not exists(t.value, path_to_table):
         write(t.value, path_to_table)
         write_lex(t.value, 'tl')
@@ -264,7 +266,7 @@ def t_ID(t):
     r"[a-zA-Z][a-zA-Z0-9]*"
     t.type = reserved.get(t.value, 'ID')
 
-    tables_path = os.path.join(os.getcwd(), "out", "lex")
+    tables_path = os.path.join(Config().ROOT_DIR, "out", "lex")
     ti = os.path.join(tables_path,'ti.txt')
     tw = os.path.join(tables_path,'tw.txt')
     tl = os.path.join(tables_path,'tl.txt')

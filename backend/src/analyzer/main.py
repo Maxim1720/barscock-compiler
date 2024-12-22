@@ -7,12 +7,13 @@ from src.analyzer.lex import *
 from src.analyzer.lex.analyze import analyze_lex
 from src.analyzer.lex.file import read_lexemes
 from src.analyzer.syntax.analyze import analyze_syntax
+from src.config import Config
 
 
 def main():
 
     try:
-        with open(f"{os.path.join(os.getcwd(),'code.txt')}", 'r') as f:
+        with open(f"{os.path.join(Config().ROOT_DIR,'code.txt')}", 'r') as f:
             code = f.read()
         print("Лексический анализ...")
         analyze_lex(code)
@@ -37,8 +38,8 @@ def main():
         print("-" * 100)
 
         subprocess.run(['nasm', '-f', 'elf64',
-                        f'{os.path.join(os.getcwd(), "output.asm")}',
-                        '-o', f'{os.path.join(os.getcwd(), "output.o")}'])
+                        f'{os.path.join(Config().ROOT_DIR, "output.asm")}',
+                        '-o', f'{os.path.join(Config().ROOT_DIR, "output.o")}'])
         print("Объектный файл успешно скомпилирован!")
     except Exception as e:
         print(Fore.RED + str(e) + Style.RESET_ALL)

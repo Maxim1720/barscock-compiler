@@ -1,6 +1,7 @@
 import os.path
 
 from .writer import write
+from ...config import Config
 
 
 def exists(content, path):
@@ -15,7 +16,7 @@ def exists(content, path):
 
 
 def is_tw(token):
-    with open(os.path.join(os.getcwd(), 'res', "tw.txt"), 'r') as f:
+    with open(os.path.join(Config().ROOT_DIR, 'res', "tw.txt"), 'r') as f:
         for line in f.readlines():
             if line.strip() == token:
                 return True
@@ -23,7 +24,7 @@ def is_tw(token):
 
 
 def is_tl(token):
-    with open(os.path.join(os.getcwd(), 'res', "tl.txt"), 'r') as f:
+    with open(os.path.join(Config().ROOT_DIR, 'res', "tl.txt"), 'r') as f:
         for line in f.readlines():
             if line.strip() == token:
                 return True
@@ -46,10 +47,10 @@ def write_lex(content, type):
         "tn": 4
     }
     src_dir = os.path.join('out','lex')
-    n = get_line_number(content, os.path.join(os.getcwd(), src_dir, f'{type}.txt'))
-    write(f"{table_dict[type]} {n}", os.path.join(os.getcwd(), "out", "lex", "lex.txt"))
+    n = get_line_number(content, os.path.join(Config().ROOT_DIR, src_dir, f'{type}.txt'))
+    write(f"{table_dict[type]} {n}", os.path.join(Config().ROOT_DIR, "out", "lex", "lex.txt"))
 
 
 def read_lexemes():
-    with open(os.path.join(os.getcwd(), 'out', 'lex', 'lex.txt'), 'r') as f:
+    with open(os.path.join(Config().ROOT_DIR, 'out', 'lex', 'lex.txt'), 'r') as f:
         return map(lambda l: l.strip(), f.readlines())
