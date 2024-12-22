@@ -5,13 +5,16 @@ from colorama import Fore, Style
 
 from src.analyzer.lex import *
 from src.analyzer.lex.analyze import analyze_lex
+from src.analyzer.lex.file import read_lexemes
 from src.analyzer.syntax.analyze import analyze_syntax
 
 
 def main():
-    with open(f"{os.path.join(os.getcwd(),'code.txt')}", 'r') as f:
-        code = f.read()
+
     try:
+        with open(f"{os.path.join(os.getcwd(),'code.txt')}", 'r') as f:
+            code = f.read()
+        print("Лексический анализ...")
         analyze_lex(code)
         print("-"*100)
         print("Лексический анализ прошел успешно!")
@@ -19,6 +22,16 @@ def main():
             print(f"Результат для таблицы {i}:")
             print(", ".join(result_table[i]))
         print("-"*100)
+        print("Таблица лексем: ")
+        for index, i in enumerate(read_lexemes()):
+            line = re.split(' ', i)
+            print(f"({line[0]} {line[1]})", end=", ")
+            if index % 6 == 0 and index!=0 :
+                print()
+        print()
+        print("-"*100)
+
+        print("Синтаксический анализ, Семантический анализ...")
         analyze_syntax(code)
         print("Синтаксический и семантический анализ прошли успешно")
         print("-" * 100)
