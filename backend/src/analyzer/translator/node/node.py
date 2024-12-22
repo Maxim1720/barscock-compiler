@@ -64,7 +64,7 @@ class TextSectionNode(Node):
         super().__init__("TextSection")
 
     def generate_code(self):
-        return "section .text"
+        return "section .text\n_start:"
 
 
 class EndNode(Node):
