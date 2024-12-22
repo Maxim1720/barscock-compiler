@@ -2,7 +2,7 @@ import os
 import re
 
 
-from src.analyzer.lex.file import exists, is_tw, is_tl
+from src.analyzer.lex.file import exists, is_tw, is_tl, write_lex
 from src.analyzer.lex.writer import write, flush
 
 os.makedirs(os.path.join(os.getcwd(), 'out'), exist_ok=True)
@@ -11,6 +11,7 @@ flush(os.path.join(os.getcwd(),'out','lex','ti.txt'))
 flush(os.path.join(os.getcwd(),"out","lex","tl.txt"))
 flush(os.path.join(os.getcwd(),"out","lex","tw.txt"))
 flush(os.path.join(os.getcwd(),"out","lex","tn.txt"))
+flush(os.path.join(os.getcwd(),"out","lex","lex.txt"))
 
 result_table = {
     "tw": [],
@@ -216,6 +217,19 @@ reserved = {
     'and': 'AND'
 }
 
+def t_NUMBER(t):
+    r"""[0-1]+[bB]|
+        [0-7]+[oO]|
+        [0-9a-fA-F]+[hH]|
+        (?:\d*\.\d+|\d+)(?:[eE][+-]?\d+)?[dD]?
+        """
+    path_to_table = os.getcwd()+"/out/lex/tn.txt"
+    if not exists(t.value, path_to_table):
+        write(t.value, path_to_table)
+        write_lex(t.value, 'tn')
+        result_table["tn"].append(t.value)
+    return t
+
 
 def t_DELIMITER(t):
     r"""\.|;|:|,|~|\(|\)"""
@@ -229,25 +243,18 @@ def t_DELIMITER(t):
         ")": "RPAREN",
     }
     t.type = types[t.value]
+    if t.type == 'DOT':
+        t.lexer.lexstate = "END"
     path_to_table = os.path.join(os.getcwd(), 'out','lex','tl.txt')
     if not exists(t.value, path_to_table):
         write(t.value, path_to_table)
+        write_lex(t.value, 'tl')
         result_table['tl'].append(f"'{t.value}'")
     return t
 
 
 
-def t_NUMBER(t):
-    r"""[0-1]+[bB]|
-        [0-7]+[oO]|
-        [0-9a-fA-F]+[hH]|
-        (?:\d*\.\d+|\d+)(?:[eE][+-]?\d+)?[dD]?
-        """
-    path_to_table = os.getcwd()+"/out/lex/tn.txt"
-    if not exists(t.value, path_to_table):
-        write(t.value, path_to_table)
-        result_table["tn"].append(t.value)
-    return t
+
 
 
 
@@ -265,13 +272,16 @@ def t_ID(t):
     if not exists(t.value, ti):
         if t.type == "ID":
             write(t.value, ti)
+            write_lex(t.value, 'ti')
             result_table['ti'].append(t.value)
         else:
             if is_tw(t.value) and not exists(t.value, tw):
                 write(t.value, tw)
+                write_lex(t.value, 'tw')
                 result_table['tw'].append(t.value)
             elif is_tl(t.value) and not exists(t.value, tl):
                 write(t.value, tl)
+                write_lex(t.value, 'tl')
                 result_table['tl'].append(t.value)
 
     return t
@@ -283,3 +293,8 @@ def t_ID(t):
 def t_error(t):
     t.lexer.skip(1)
     raise SyntaxError(f"Недопустимый символ '{t.value[0]}'. Строка {t.lineno}")
+
+
+def t_eof(t):
+    if t.lexer.lexstate != 'END':
+        raise SyntaxError(f"Неожиданный конец файла")
